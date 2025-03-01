@@ -8,6 +8,8 @@
     <style>  
         body { font-family: Arial, sans-serif; }  
         .container { max-width: 920px; margin: 0 auto; }  
+        .universal { background-color: #d4f8d4; } /* Verde claro */  
+        .superador { background-color: #f8d4d4; } /* Rojo claro */  
     </style>  
 </head>  
 <body class="bg-gray-100">  
@@ -161,8 +163,9 @@
             }  
 
             data.forEach(item => {  
+                const rowClass = item.plan === 'UNIVERSAL' ? 'universal' : item.plan === 'SUPERADOR' ? 'superador' : '';  
                 const row = `  
-                    <tr class="bg-gray-100 even:bg-gray-50">  
+                    <tr class="${rowClass}">  
                         <td class="border p-2">${item.nroPrestador || 'N/A'}</td>  
                         <td class="border p-2">${item.prestador || 'N/A'}</td>  
                         <td class="border p-2">${item.plan || 'N/A'}</td>  
@@ -210,6 +213,9 @@
                        (selectedTipo === '' || item.tipo === selectedTipo) &&  
                        (selectedEspecialidad === '' || item.especialidad === selectedEspecialidad);  
             });  
+
+            // Ordenar alfabéticamente por la columna PRESTADOR  
+            filteredData.sort((a, b) => a.prestador.localeCompare(b.prestador));  
 
             displayData(filteredData);  
         }  
