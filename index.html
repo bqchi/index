@@ -1,0 +1,208 @@
+<!DOCTYPE html>  
+<html lang="es">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>Prestadores</title>  
+    <script src="https://cdn.tailwindcss.com"></script>  
+    <style>  
+        body { font-family: Arial, sans-serif; }  
+        .container { max-width: 920px; margin: 0 auto; }  
+    </style>  
+</head>  
+<body class="bg-gray-100">  
+    <div class="container p-6 bg-white rounded shadow-md">  
+        <h1 class="text-2xl font-bold mb-4">Prestadores</h1>  
+
+        <!-- Filtros -->  
+        <div class="grid grid-cols-2 gap-4 mb-4">  
+            <div>  
+                <label for="plan" class="block mb-1">Plan:</label>  
+                <select id="plan" class="w-full border-2 border-gray-200 p-2 rounded">  
+                    <option value="">Todos</option>  
+                    <option value="UNIVERSAL">UNIVERSAL</option>  
+                    <option value="SUPERADOR">SUPERADOR</option>  
+                </select>  
+            </div>  
+            <div>  
+                <label for="zona" class="block mb-1">Zona:</label>  
+                <select id="zona" class="w-full border-2 border-gray-200 p-2 rounded">  
+                    <option value="">Todas</option>  
+                    <option value="CAPITAL FEDERAL">CAPITAL FEDERAL</option>  
+                    <option value="BUENOS AIRES">BUENOS AIRES</option>  
+                    <option value="CATAMARCA">CATAMARCA</option>  
+                    <option value="CHACO">CHACO</option>  
+                    <option value="CHUBUT">CHUBUT</option>  
+                    <option value="CORDOBA">CORDOBA</option>  
+                    <option value="CORRIENTES">CORRIENTES</option>  
+                    <option value="ENTRE RIOS">ENTRE RIOS</option>  
+                    <option value="FORMOSA">FORMOSA</option>  
+                    <option value="JUJUY">JUJUY</option>  
+                    <option value="LA PAMPA">LA PAMPA</option>  
+                    <option value="LA RIOJA">LA RIOJA</option>  
+                    <option value="MAR DEL PLATA">MAR DEL PLATA</option>  
+                    <option value="MENDOZA">MENDOZA</option>  
+                    <option value="MISIONES">MISIONES</option>  
+                    <option value="NEUQUEN">NEUQUEN</option>  
+                    <option value="RIO NEGRO">RIO NEGRO</option>  
+                    <option value="ROSARIO">ROSARIO</option>  
+                    <option value="SALTA">SALTA</option>  
+                    <option value="SANTA FE">SANTA FE</option>  
+                    <option value="TUCUMAN">TUCUMAN</option>  
+                </select>  
+            </div>  
+            <div>  
+                <label for="tipo" class="block mb-1">Tipo de Prestador:</label>  
+                <select id="tipo" class="w-full border-2 border-gray-200 p-2 rounded" onchange="updateEspecialidades()">  
+                    <option value="">Todos</option>  
+                    <option value="Profesionales">Profesionales</option>  
+                    <option value="Diagnostico y tratamiento">Diagnostico y tratamiento</option>  
+                    <option value="Guardia">Guardia</option>  
+                    <option value="Clinicas y sanatorios para internacion">Clinicas y sanatorios para internacion</option>  
+                </select>  
+            </div>  
+            <div>  
+                <label for="especialidad" class="block mb-1">Especialidad:</label>  
+                <select id="especialidad" class="w-full border-2 border-gray-200 p-2 rounded">  
+                    <option value="">Todas</option>  
+                </select>  
+            </div>  
+        </div>  
+
+        <!-- Tabla de Prestadores -->  
+        <table id="prestadoresTable" class="table-auto w-full border-collapse border">  
+            <thead>  
+                <tr class="bg-gray-200">  
+                    <th class="border p-2">NROPRESTADOR</th>  
+                    <th class="border p-2">PRESTADOR</th>  
+                    <th class="border p-2">PLAN</th>  
+                    <th class="border p-2">TIPO DE PRESTADOR</th>  
+                    <th class="border p-2">ESPECIALIDAD</th>  
+                    <th class="border p-2">ZONA</th>  
+                    <th class="border p-2">DIRECCION</th>  
+                    <th class="border p-2">TELEFONO</th>  
+                    <th class="border p-2">BARRIO_LOCALIDAD</th>  
+                </tr>  
+            </thead>  
+            <tbody id="tableBody">  
+                <!-- Los datos de CSV se cargarán aquí -->  
+            </tbody>  
+        </table>  
+    </div>  
+
+    <script>  
+        const prestadores = [];  
+
+        // Especialidades por tipo de prestador  
+        const especialidadesPorTipo = {  
+            "Profesionales": [  
+                "ALERGIA E INMUNOLOGIA", "ALERGIA E INMUNOLOGIA INFANTIL", "CARDIOLOGIA", "CIRUGIA PLASTICA Y REPARADORA",  
+                "CIRUGIA TRAUMATOLOGICA", "CLINICA MEDICA", "DERMATOLOGIA", "ECOGRAFIA", "ENDOCRINOLOGIA", "FLEBOLOGIA",  
+                "FONOAUDIOLOGIA", "GASTROENTEROLOGIA", "GINECOLOGIA", "INFECTOLOGIA", "KINESIOLOGIA", "NEFROLOGIA",  
+                "NEUMONOLOGIA", "NEUROLOGIA", "NUTRICION Y DIABETES", "OBSTETRICIA", "OFTALMOLOGIA", "ONCOLOGIA",  
+                "OTORRINOLARINGOLOGIA", "PATOLOGIA MAMARIA", "PEDIATRIA", "REUMATOLOGIA", "SALUD MENTAL", "TRAUMATOLOGIA",  
+                "UROLOGIA"  
+            ],  
+            "Diagnostico y tratamiento": [  
+                "ANALISIS CLINICOS", "ECOCARDIOGRAFIA", "ECODOPPLER", "ECOESTRESS", "ECOGRAFIA", "ELECTROCARDIOGRAMA",  
+                "ELECTROCARDIOGRAMA INFANTIL", "ELECTROENCEFALOGRAMA", "ENDOSCOPIA DIGESTIVA", "ERGOMETRIA", "ESPIROMETRIA",  
+                "ESTUDIOS MAMARIOS", "FONOAUDIOLOGIA", "PRESUROMETRIA - HOLTER", "RADIOLOGIA",  
+                "RESONANCIA MAGNETICA NUCLEAR", "TOMOGRAFIA COMPUTADA"  
+            ],  
+            "Guardia": [  
+                "GUARDIA GENERAL", "GUARDIA PEDIATRICA"  
+            ],  
+            "Clinicas y sanatorios para internacion": [  
+                "INTERNACION GENERAL", "INTERNACION PEDIATRICA"  
+            ]  
+        };  
+
+        async function loadCSV() {  
+            const csvFiles = ['prestadores1.csv', 'prestadores2.csv'];  
+
+            for (const file of csvFiles) {  
+                const response = await fetch(file);  
+                const data = await response.text();  
+                
+                const rows = data.trim().split('\n');  
+                rows.slice(1).forEach(row => {  
+                    const columns = row.split(',');  
+                    if (columns.length > 1) {  
+                        prestadores.push({  
+                            nroPrestador: columns[0],  
+                            prestador: columns[1],  
+                            plan: columns[2],  
+                            tipo: columns[3],  
+                            especialidad: columns[4],  
+                            zona: columns[5],  
+                            direccion: columns[6],  
+                            telefono: columns[7],  
+                            barrioLocalidad: columns[8]  
+                        });  
+                    }  
+                });  
+            }  
+            displayData(prestadores);  
+        }  
+
+        function displayData(data) {  
+            const tableBody = document.getElementById('tableBody');  
+            tableBody.innerHTML = '';  
+            data.forEach(item => {  
+                const row = `  
+                    <tr>  
+                        <td class="border p-2">${item.nroPrestador}</td>  
+                        <td class="border p-2">${item.prestador}</td>  
+                        <td class="border p-2">${item.plan}</td>  
+                        <td class="border p-2">${item.tipo}</td>  
+                        <td class="border p-2">${item.especialidad}</td>  
+                        <td class="border p-2">${item.zona}</td>  
+                        <td class="border p-2">${item.direccion}</td>  
+                        <td class="border p-2">${item.telefono}</td>  
+                        <td class="border p-2">${item.barrioLocalidad}</td>  
+                    </tr>  
+                `;  
+                tableBody.insertAdjacentHTML('beforeend', row);  
+            });  
+        }  
+
+        function updateEspecialidades() {  
+            const tipo = document.getElementById('tipo').value;  
+            const especialidadSelect = document.getElementById('especialidad');  
+            especialidadSelect.innerHTML = '<option value="">Todas</option>';  
+
+            if (especialidadesPorTipo[tipo]) {  
+                especialidadesPorTipo[tipo].forEach(especialidad => {  
+                    const option = document.createElement('option');  
+                    option.value = especialidad;  
+                    option.textContent = especialidad;  
+                    especialidadSelect.appendChild(option);  
+                });  
+            }  
+        }  
+
+        function filterData() {  
+            const selectedPlan = document.getElementById('plan').value;  
+            const selectedZona = document.getElementById('zona').value;  
+            const selectedTipo = document.getElementById('tipo').value;  
+            const selectedEspecialidad = document.getElementById('especialidad').value;  
+
+            const filteredData = prestadores.filter(item => {  
+                return (selectedPlan === '' || item.plan === selectedPlan) &&  
+                       (selectedZona === '' || item.zona === selectedZona) &&  
+                       (selectedTipo === '' || item.tipo === selectedTipo) &&  
+                       (selectedEspecialidad === '' || item.especialidad === selectedEspecialidad);  
+            });  
+
+            displayData(filteredData);  
+        }  
+
+        document.getElementById('plan').addEventListener('change', filterData);  
+        document.getElementById('zona').addEventListener('change', filterData);  
+        document.getElementById('tipo').addEventListener('change', filterData);  
+        document.getElementById('especialidad').addEventListener('change', filterData);  
+
+        loadCSV();  
+    </script>  
+</body>  
+</html>  
