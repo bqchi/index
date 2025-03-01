@@ -214,8 +214,13 @@
                        (selectedEspecialidad === '' || item.especialidad === selectedEspecialidad);  
             });  
 
-            // Ordenar alfabéticamente por la columna PRESTADOR  
-            filteredData.sort((a, b) => a.prestador.localeCompare(b.prestador));  
+            // Ordenar primero por PLAN y luego alfabéticamente por PRESTADOR  
+            filteredData.sort((a, b) => {  
+                if (a.plan === b.plan) {  
+                    return a.prestador.localeCompare(b.prestador);  
+                }  
+                return a.plan === 'UNIVERSAL' ? -1 : 1; // UNIVERSAL primero  
+            });  
 
             displayData(filteredData);  
         }  
@@ -228,4 +233,4 @@
         loadCSV();  
     </script>  
 </body>  
-</html> 
+</html>
