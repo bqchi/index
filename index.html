@@ -200,7 +200,12 @@
             const selectedEspecialidad = document.getElementById('especialidad').value;  
 
             const filteredData = prestadores.filter(item => {  
-                return (selectedPlan === '' || item.plan === selectedPlan) &&  
+                const planCondition =   
+                    (selectedPlan === '' ||   
+                    item.plan === selectedPlan ||   
+                    (selectedPlan === 'SUPERADOR' && item.plan === 'UNIVERSAL'));  
+
+                return planCondition &&  
                        (selectedZona === '' || item.zona === selectedZona) &&  
                        (selectedTipo === '' || item.tipo === selectedTipo) &&  
                        (selectedEspecialidad === '' || item.especialidad === selectedEspecialidad);  
@@ -217,4 +222,4 @@
         loadCSV();  
     </script>  
 </body>  
-</html>    
+</html> 
