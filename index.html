@@ -17,6 +17,11 @@
         .filtros { margin-bottom: 20px; }
         select { padding: 5px; margin-right: 10px; width: 200px; }
         table { font-size: 14px; }
+        /* Ajuste de altura de filas */
+        #tabla-prestadores tbody tr {
+            height: 20px !important; /* 3 veces menor que el valor por defecto (~60px) */
+            line-height: 20px !important;
+        }
     </style>
 </head>
 <body>
@@ -54,7 +59,7 @@
                 <th>Localidad</th>
                 <th>Domicilio</th>
                 <th>Telefono</th>
-                <th>Tipo de prestador</th>  <!-- ¡Atención a minúsculas! -->
+                <th>Tipo de prestador</th>
                 <th>Especialidad</th>
             </tr>
         </thead>
@@ -63,13 +68,14 @@
 
     <script>
         // Precargar la relación Tipo de Prestador -> Especialidad
+        // ¡Ajustado para coincidir con los valores del CSV!
         const tipoEspecialidad = {
-            "GUARDIA ACTIVA": ["Cardiologica", "Clinica", "General", "Ginecologica", "Obstetrica", "Odontologica", "Oftalmologica", "Otorrinolaringologia", "Pediatrica", "Por Electrocucion", "Por envenenamiento", "Por intoxicacion", "Por mordedura de animales", "Psiquiatrica", "Quemados", "Quirurgica", "Traumatologica"],
-            "GUARDIA PASIVA": ["Cardiologica", "Clinica", "General", "Ginecologica", "Obstetrica", "Oftalmologica", "Otorrinolaringologia", "Pediatrica", "Psiquiatrica", "Quemados", "Quirurgica", "Traumatologica"],
-            "ESPECIALIDADES EN AMBULATORIO": ["Adolescencia", "Alergia e Inmunologia", "Alergia e Inmunologia Infantil", "Andrologia", "Cardiologia", "Cardiologia Infantil", "Clinica Medica", "Dermatologia", "Dermatologia Infantil", "Diabetologia", "Diabetologia Infantil", "Endocrinologia", "Endocrinologia Infantil", "Estomatologia", "Fisiatria", "Flebologia y Linfologia", "Fonoaudiologia", "Gastroenterologia", "Gastroenterologia Infantil", "Genetica", "Geriatria", "Ginecologia", "Ginecologia Infanto Juvenil", "Hematologia e Inmunologia", "Hematologia e Inmunologia Infantil", "Hemoterapia", "Hemoterapia Infantil", "Hepatologia", "Infectologia", "Infectologia Infantil", "Medicina Familiar", "Micologia", "Nefrologia", "Nefrologia Infantil", "Neonatologia", "Neumonologia", "Neumonologia Infantil", "Neurocirugia", "Neurologia", "Neurologia Infantil", "Nutricion", "Nutricion Infantil", "Obstetricia", "Odontologia", "Oftalmologia", "Oftalmologia Infantil", "Oncologia", "Oncologia Infantil", "Osteoporosis y Litiasis renal", "Otorrinolaringologia", "Otorrinolaringologia Infantil", "Patologia Mamaria", "Pediatria", "Proctologia", "Psicologia", "Psiquiatria", "Psiquiatria Infantil", "Quemados", "Reumatologia", "Traumatologia y Ortopedia", "Traumatologia y Ortopedia Infantil", "Urologia", "Urologia Infantil"],
-            "INTERNACION": ["Internacion Cardiologica", "Internacion Neurologia", "Internacion Oftalmologica", "Internacion Otorrinolaringologica", "Internacion por Rehabilitacion", "Internacion Psiquiatrica", "Internacion Traumatologica", "Maternidad", "Pediatrica", "Piso", "Respirador", "Telemetria", "Terapia Intermedia", "UCO", "UTI", "UTINeo", "UTIP"],
-            "CIRUGIAS": ["Artroscopica", "Cabeza y Cuello", "Cardiaca", "Cardiaca Infantil", "Endoscopica", "General", "Ginecologia", "Infantil", "Laparoscopica", "Miembro Superior y Mano", "Nariz y oido", "Neurocirugia", "Oftalmologica", "Pierna y Pie", "Plastica Reparadora", "Toracica", "Urologia", "Vascular Periferica"],
-            "DIAGNOSTICO Y TRATAMIENTO": ["Anatomia Patologia", "Audiometria", "Camara Gamma - Medicina Nuclear - Radioisotopos", "Campo visual computarizado", "Colposcopia", "Densitometria Osea", "Drenaje Linfatico", "Eco-Doppler", "Ecografia", "Ecografia Infantil", "Eco Estres", "Electrocardiograma", "Electroencefalograma", "Electromiograma", "Endoscopia Digestiva", "Endoscopia Ginecologica", "Endoscopia Respiratoria", "Endoscopia Urologica", "Ergometria", "Espinograma", "Espirometria", "Espirometria Infantil", "Estudios mamarios", "Fonoaudiologia y Foniatria", "Hemodinamia", "Holter", "Infiltraciones", "Kinesiologia", "Kinesiologia en interancion", "Laboratorio Alergia e Inmunologia", "Laboratorio Bacteriologia y Serologia", "Laboratorio Dosaje Hormonal", "Laboratorio Estudios Metabolicos - Fosfacalcicos", "Laboratorio Estudios Nefrologicos", "Laboratorio Hematologia - Hemostasia - Trombosis", "Laboratorio Micologia", "Laboratorio Radioinmunoensayo", "Laboratorio Virologia", "Litotricia", "Mapeo Cerebral", "Monitoreo Fetal", "PET", "Polisomnografia", "Potenciales Evocados", "Presurometria", "Psicologia", "Psicologia Infantil", "Psicopedagogia", "Psicoprofilaxis del parto", "Puncion Mamaria", "Puncion Tiroide", "Quimioterapia", "Radiologia", "Radiologia Infantil", "Radioterapia", "Rehabilitacion Cardiaca", "Rehabilitacion Vestibular", "Resonador abierto", "Resonancia Magnetica Nuclear", "RPG", "Tomografia Computada", "Tomografo abierto", "Urodinamia", "Urodinamia Infantil"]
+            "GuardiaActiva": ["Cardiologica", "Clinica", "General", "Ginecologica", "Obstetrica", "Odontologica", "Oftalmologica", "Otorrinolaringologia", "Pediatrica", "Por Electrocucion", "Por envenenamiento", "Por intoxicacion", "Por mordedura de animales", "Psiquiatrica", "Quemados", "Quirurgica", "Traumatologica"],
+            "GuardiaPasiva": ["Cardiologica", "Clinica", "General", "Ginecologica", "Obstetrica", "Oftalmologica", "Otorrinolaringologia", "Pediatrica", "Psiquiatrica", "Quemados", "Quirurgica", "Traumatologica"],
+            "EspecialidadesAmbulatorio": ["Adolescencia", "Alergia e Inmunologia", "Alergia e Inmunologia Infantil", "Andrologia", "Cardiologia", "Cardiologia Infantil", "Clinica Medica", "Dermatologia", "Dermatologia Infantil", "Diabetologia", "Diabetologia Infantil", "Endocrinologia", "Endocrinologia Infantil", "Estomatologia", "Fisiatria", "Flebologia y Linfologia", "Fonoaudiologia", "Gastroenterologia", "Gastroenterologia Infantil", "Genetica", "Geriatria", "Ginecologia", "Ginecologia Infanto Juvenil", "Hematologia e Inmunologia", "Hematologia e Inmunologia Infantil", "Hemoterapia", "Hemoterapia Infantil", "Hepatologia", "Infectologia", "Infectologia Infantil", "Medicina Familiar", "Micologia", "Nefrologia", "Nefrologia Infantil", "Neonatologia", "Neumonologia", "Neumonologia Infantil", "Neurocirugia", "Neurologia", "Neurologia Infantil", "Nutricion", "Nutricion Infantil", "Obstetricia", "Odontologia", "Oftalmologia", "Oftalmologia Infantil", "Oncologia", "Oncologia Infantil", "Osteoporosis y Litiasis renal", "Otorrinolaringologia", "Otorrinolaringologia Infantil", "Patologia Mamaria", "Pediatria", "Proctologia", "Psicologia", "Psiquiatria", "Psiquiatria Infantil", "Quemados", "Reumatologia", "Traumatologia y Ortopedia", "Traumatologia y Ortopedia Infantil", "Urologia", "Urologia Infantil"],
+            "Internacion": ["Internacion Cardiologica", "Internacion Neurologia", "Internacion Oftalmologica", "Internacion Otorrinolaringologica", "Internacion por Rehabilitacion", "Internacion Psiquiatrica", "Internacion Traumatologica", "Maternidad", "Pediatrica", "Piso", "Respirador", "Telemetria", "Terapia Intermedia", "UCO", "UTI", "UTINeo", "UTIP"],
+            "Cirugias": ["Artroscopica", "Cabeza y Cuello", "Cardiaca", "Cardiaca Infantil", "Endoscopica", "General", "Ginecologia", "Infantil", "Laparoscopica", "Miembro Superior y Mano", "Nariz y oido", "Neurocirugia", "Oftalmologica", "Pierna y Pie", "Plastica Reparadora", "Toracica", "Urologia", "Vascular Periferica"],
+            "Diagnostico": ["Anatomia Patologia", "Audiometria", "Camara Gamma - Medicina Nuclear - Radioisotopos", "Campo visual computarizado", "Colposcopia", "Densitometria Osea", "Drenaje Linfatico", "Eco-Doppler", "Ecografia", "Ecografia Infantil", "Eco Estres", "Electrocardiograma", "Electroencefalograma", "Electromiograma", "Endoscopia Digestiva", "Endoscopia Ginecologica", "Endoscopia Respiratoria", "Endoscopia Urologica", "Ergometria", "Espinograma", "Espirometria", "Espirometria Infantil", "Estudios mamarios", "Fonoaudiologia y Foniatria", "Hemodinamia", "Holter", "Infiltraciones", "Kinesiologia", "Kinesiologia en interancion", "Laboratorio Alergia e Inmunologia", "Laboratorio Bacteriologia y Serologia", "Laboratorio Dosaje Hormonal", "Laboratorio Estudios Metabolicos - Fosfacalcicos", "Laboratorio Estudios Nefrologicos", "Laboratorio Hematologia - Hemostasia - Trombosis", "Laboratorio Micologia", "Laboratorio Radioinmunoensayo", "Laboratorio Virologia", "Litotricia", "Mapeo Cerebral", "Monitoreo Fetal", "PET", "Polisomnografia", "Potenciales Evocados", "Presurometria", "Psicologia", "Psicologia Infantil", "Psicopedagogia", "Psicoprofilaxis del parto", "Puncion Mamaria", "Puncion Tiroide", "Quimioterapia", "Radiologia", "Radiologia Infantil", "Radioterapia", "Rehabilitacion Cardiaca", "Rehabilitacion Vestibular", "Resonador abierto", "Resonancia Magnetica Nuclear", "RPG", "Tomografia Computada", "Tomografo abierto", "Urodinamia", "Urodinamia Infantil"]
         };
 
         // Precargar Seccionales
@@ -88,7 +94,7 @@
                 $('#filtro-seccional').append(`<option value="${sec}">${sec}</option>`);
             });
 
-            // Cargar opciones de Tipo de Prestador
+            // Cargar opciones de Tipo de Prestador (usando las claves de tipoEspecialidad)
             Object.keys(tipoEspecialidad).forEach(tipo => {
                 $('#filtro-tipo').append(`<option value="${tipo}">${tipo}</option>`);
             });
@@ -110,6 +116,7 @@
                 download: true,
                 header: true,
                 complete: function(results) {
+                    console.log("Datos cargados:", results.data); // Para depuración
                     const datos = results.data;
                     const tabla = $('#tabla-prestadores').DataTable({
                         data: datos,
@@ -124,7 +131,7 @@
                             { data: 'Localidad' },
                             { data: 'Domicilio' },
                             { data: 'Telefono' },
-                            { data: 'Tipo de prestador' },  // ¡Clave ajustada a minúsculas!
+                            { data: 'Tipo de prestador' }, // ¡Coincide con el CSV!
                             { data: 'Especialidad' }
                         ],
                         language: {
