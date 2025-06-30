@@ -19,7 +19,7 @@
         table { font-size: 14px; }
         /* Ajuste de altura de filas */
         #tabla-prestadores tbody tr {
-            height: 20px !important; /* 3 veces menor que el valor por defecto (~60px) */
+            height: 20px !important;
             line-height: 20px !important;
         }
     </style>
@@ -45,15 +45,12 @@
         </select>
     </div>
     
-    <!-- Tabla -->
+    <!-- Tabla (sin columnas CUIT, Sucursal, Provincia en el HTML) -->
     <table id="tabla-prestadores" class="display" style="width:100%">
         <thead>
             <tr>
                 <th>Nombre</th>
-                <th>CUIT</th>
                 <th>NroPrestador</th>
-                <th>Sucursal</th>
-                <th>Provincia</th>
                 <th>Seccional</th>
                 <th>Partido</th>
                 <th>Localidad</th>
@@ -68,7 +65,6 @@
 
     <script>
         // Precargar la relación Tipo de Prestador -> Especialidad
-        // ¡Ajustado para coincidir con los valores del CSV!
         const tipoEspecialidad = {
             "GuardiaActiva": ["Cardiologica", "Clinica", "General", "Ginecologica", "Obstetrica", "Odontologica", "Oftalmologica", "Otorrinolaringologia", "Pediatrica", "Por Electrocucion", "Por envenenamiento", "Por intoxicacion", "Por mordedura de animales", "Psiquiatrica", "Quemados", "Quirurgica", "Traumatologica"],
             "GuardiaPasiva": ["Cardiologica", "Clinica", "General", "Ginecologica", "Obstetrica", "Oftalmologica", "Otorrinolaringologia", "Pediatrica", "Psiquiatrica", "Quemados", "Quirurgica", "Traumatologica"],
@@ -94,7 +90,7 @@
                 $('#filtro-seccional').append(`<option value="${sec}">${sec}</option>`);
             });
 
-            // Cargar opciones de Tipo de Prestador (usando las claves de tipoEspecialidad)
+            // Cargar opciones de Tipo de Prestador
             Object.keys(tipoEspecialidad).forEach(tipo => {
                 $('#filtro-tipo').append(`<option value="${tipo}">${tipo}</option>`);
             });
@@ -115,24 +111,27 @@
             Papa.parse("Data.csv", {
                 download: true,
                 header: true,
+                delimiter: ";",
                 complete: function(results) {
-                    console.log("Datos cargados:", results.data); // Para depuración
-                    const datos = results.data;
+                    console.log("Datos cargados:", results.data); // Depuración
+                    const datosFiltrados = results.data.filter(row => row.CUIT && row.CUIT.trim() !== "");
+
+                    // Configurar DataTables (columnas CUIT, Sucursal y Provincia ocultas en el HTML)
                     const tabla = $('#tabla-prestadores').DataTable({
-                        data: datos,
+                        data: datosFiltrados,
                         columns: [
-                            { data: 'Nombre' },
-                            { data: 'CUIT' },
-                            { data: 'NroPrestador' },
-                            { data: 'Sucursal' },
-                            { data: 'Provincia' },
-                            { data: 'Seccional' },
-                            { data: 'Partido' },
-                            { data: 'Localidad' },
-                            { data: 'Domicilio' },
-                            { data: 'Telefono' },
-                            { data: 'Tipo de prestador' }, // ¡Coincide con el CSV!
-                            { data: 'Especialidad' }
+                            { data: 'Nombre', defaultContent: '' },
+                            // { data: 'CUIT', defaultContent: '' },      // Columna oculta
+                            { data: 'NroPrestador', defaultContent: '' },
+                            // { data: 'Sucursal', defaultContent: '' },  // Columna oculta
+                            // { data: 'Provincia', defaultContent: '' }, // Columna oculta
+                            { data: 'Seccional', defaultContent: '' },
+                            { data: 'Partido', defaultContent: '' },
+                            { data: 'Localidad', defaultContent: '' },
+                            { data: 'Domicilio', defaultContent: '' },
+                            { data: 'Telefono', defaultContent: '' },
+                            { data: 'Tipo de prestador', defaultContent: '' },
+                            { data: 'Especialidad', defaultContent: '' }
                         ],
                         language: {
                             url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'
@@ -141,15 +140,15 @@
                         pageLength: 10
                     });
 
-                    // Aplicar filtros
+                    // Aplicar filtros (las columnas ocultas siguen disponibles para filtrado)
                     $('.filtros select').on('change', function() {
                         const seccional = $('#filtro-seccional').val();
                         const tipo = $('#filtro-tipo').val();
                         const especialidad = $('#filtro-especialidad').val();
                         
-                        tabla.column(5).search(seccional).draw();   // Seccional (columna 5)
-                        tabla.column(10).search(tipo).draw();       // Tipo de prestador (columna 10)
-                        tabla.column(11).search(especialidad).draw(); // Especialidad (columna 11)
+                        tabla.column(2).search(seccional).draw();   // Seccional (columna 2)
+                        tabla.column(7).search(tipo).draw();        // Tipo de prestador (columna 7)
+                        tabla.column(8).search(especialidad).draw(); // Especialidad (columna 8)
                     });
                 }
             });
