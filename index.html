@@ -22,6 +22,13 @@
             height: 20px !important;
             line-height: 20px !important;
         }
+        /* Colores para tipos de prestadores */
+        .GuardiaActiva { background-color: #d4e6f1 !important; } /* Azul claro */
+        .GuardiaPasiva { background-color: #7fb3d5 !important; } /* Azul oscuro */
+        .EspecialidadesAmbulatorio { background-color: #d5e8d4 !important; } /* Verde claro */
+        .Diagnostico { background-color: #82c785 !important; } /* Verde oscuro */
+        .Cirugias { background-color: #e1bee7 !important; } /* Morado claro */
+        .Internacion { background-color: #ba68c8 !important; } /* Morado oscuro */
     </style>
 </head>
 <body>
@@ -121,10 +128,7 @@
                         data: datosFiltrados,
                         columns: [
                             { data: 'Nombre', defaultContent: '' },
-                            // { data: 'CUIT', defaultContent: '' },      // Columna oculta
                             { data: 'NroPrestador', defaultContent: '' },
-                            // { data: 'Sucursal', defaultContent: '' },  // Columna oculta
-                            // { data: 'Provincia', defaultContent: '' }, // Columna oculta
                             { data: 'Seccional', defaultContent: '' },
                             { data: 'Partido', defaultContent: '' },
                             { data: 'Localidad', defaultContent: '' },
@@ -137,7 +141,13 @@
                             url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'
                         },
                         scrollX: true,
-                        pageLength: 10
+                        pageLength: 10,
+                        createdRow: function(row, data, dataIndex) {
+                            // Aplicar clase CSS según el tipo de prestador
+                            if (data['Tipo de prestador']) {
+                                $(row).addClass(data['Tipo de prestador'].replace(/\s+/g, ''));
+                            }
+                        }
                     });
 
                     // Aplicar filtros (las columnas ocultas siguen disponibles para filtrado)
