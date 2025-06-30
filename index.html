@@ -10,12 +10,13 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- DataTables JS -->
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <!-- PapaParse para leer CSV -->
+    <!-- PapaParse para CSV -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         .filtros { margin-bottom: 20px; }
-        select { padding: 5px; margin-right: 10px; }
+        select { padding: 5px; margin-right: 10px; width: 200px; }
+        table { font-size: 14px; }
     </style>
 </head>
 <body>
@@ -44,21 +45,67 @@
         <thead>
             <tr>
                 <th>Nombre</th>
+                <th>CUIT</th>
+                <th>NroPrestador</th>
+                <th>Sucursal</th>
+                <th>Provincia</th>
                 <th>Seccional</th>
+                <th>Partido</th>
+                <th>Localidad</th>
+                <th>Domicilio</th>
+                <th>Telefono</th>
                 <th>Tipo de Prestador</th>
                 <th>Especialidad</th>
-                <th>Localidad</th>
-                <!-- Añade más columnas según tu CSV -->
             </tr>
         </thead>
-        <tbody>
-            <!-- Los datos se cargarán desde el CSV -->
-        </tbody>
+        <tbody></tbody>
     </table>
 
     <script>
+        // Precargar la relación Tipo de Prestador -> Especialidad
+        const tipoEspecialidad = {
+            "GUARDIA ACTIVA": ["Cardiologica", "Clinica", "General", "Ginecologica", "Obstetrica", "Odontologica", "Oftalmologica", "Otorrinolaringologia", "Pediatrica", "Por Electrocucion", "Por envenenamiento", "Por intoxicacion", "Por mordedura de animales", "Psiquiatrica", "Quemados", "Quirurgica", "Traumatologica"],
+            "GUARDIA PASIVA": ["Cardiologica", "Clinica", "General", "Ginecologica", "Obstetrica", "Oftalmologica", "Otorrinolaringologia", "Pediatrica", "Psiquiatrica", "Quemados", "Quirurgica", "Traumatologica"],
+            "ESPECIALIDADES EN AMBULATORIO": ["Adolescencia", "Alergia e Inmunologia", "Alergia e Inmunologia Infantil", "Andrologia", "Cardiologia", "Cardiologia Infantil", "Clinica Medica", "Dermatologia", "Dermatologia Infantil", "Diabetologia", "Diabetologia Infantil", "Endocrinologia", "Endocrinologia Infantil", "Estomatologia", "Fisiatria", "Flebologia y Linfologia", "Fonoaudiologia", "Gastroenterologia", "Gastroenterologia Infantil", "Genetica", "Geriatria", "Ginecologia", "Ginecologia Infanto Juvenil", "Hematologia e Inmunologia", "Hematologia e Inmunologia Infantil", "Hemoterapia", "Hemoterapia Infantil", "Hepatologia", "Infectologia", "Infectologia Infantil", "Medicina Familiar", "Micologia", "Nefrologia", "Nefrologia Infantil", "Neonatologia", "Neumonologia", "Neumonologia Infantil", "Neurocirugia", "Neurologia", "Neurologia Infantil", "Nutricion", "Nutricion Infantil", "Obstetricia", "Odontologia", "Oftalmologia", "Oftalmologia Infantil", "Oncologia", "Oncologia Infantil", "Osteoporosis y Litiasis renal", "Otorrinolaringologia", "Otorrinolaringologia Infantil", "Patologia Mamaria", "Pediatria", "Proctologia", "Psicologia", "Psiquiatria", "Psiquiatria Infantil", "Quemados", "Reumatologia", "Traumatologia y Ortopedia", "Traumatologia y Ortopedia Infantil", "Urologia", "Urologia Infantil"],
+            "INTERNACION": ["Internacion Cardiologica", "Internacion Neurologia", "Internacion Oftalmologica", "Internacion Otorrinolaringologica", "Internacion por Rehabilitacion", "Internacion Psiquiatrica", "Internacion Traumatologica", "Maternidad", "Pediatrica", "Piso", "Respirador", "Telemetria", "Terapia Intermedia", "UCO", "UTI", "UTINeo", "UTIP"],
+            "CIRUGIAS": ["Artroscopica", "Cabeza y Cuello", "Cardiaca", "Cardiaca Infantil", "Endoscopica", "General", "Ginecologia", "Infantil", "Laparoscopica", "Miembro Superior y Mano", "Nariz y oido", "Neurocirugia", "Oftalmologica", "Pierna y Pie", "Plastica Reparadora", "Toracica", "Urologia", "Vascular Periferica"],
+            "DIAGNOSTICO Y TRATAMIENTO": ["Anatomia Patologia", "Audiometria", "Camara Gamma - Medicina Nuclear - Radioisotopos", "Campo visual computarizado", "Colposcopia", "Densitometria Osea", "Drenaje Linfatico", "Eco-Doppler", "Ecografia", "Ecografia Infantil", "Eco Estres", "Electrocardiograma", "Electroencefalograma", "Electromiograma", "Endoscopia Digestiva", "Endoscopia Ginecologica", "Endoscopia Respiratoria", "Endoscopia Urologica", "Ergometria", "Espinograma", "Espirometria", "Espirometria Infantil", "Estudios mamarios", "Fonoaudiologia y Foniatria", "Hemodinamia", "Holter", "Infiltraciones", "Kinesiologia", "Kinesiologia en interancion", "Laboratorio Alergia e Inmunologia", "Laboratorio Bacteriologia y Serologia", "Laboratorio Dosaje Hormonal", "Laboratorio Estudios Metabolicos - Fosfacalcicos", "Laboratorio Estudios Nefrologicos", "Laboratorio Hematologia - Hemostasia - Trombosis", "Laboratorio Micologia", "Laboratorio Radioinmunoensayo", "Laboratorio Virologia", "Litotricia", "Mapeo Cerebral", "Monitoreo Fetal", "PET", "Polisomnografia", "Potenciales Evocados", "Presurometria", "Psicologia", "Psicologia Infantil", "Psicopedagogia", "Psicoprofilaxis del parto", "Puncion Mamaria", "Puncion Tiroide", "Quimioterapia", "Radiologia", "Radiologia Infantil", "Radioterapia", "Rehabilitacion Cardiaca", "Rehabilitacion Vestibular", "Resonador abierto", "Resonancia Magnetica Nuclear", "RPG", "Tomografia Computada", "Tomografo abierto", "Urodinamia", "Urodinamia Infantil"]
+        };
+
+        // Precargar Seccionales (ajusta según tus datos)
+        const seccionales = [
+            "BAHIA BLANCA", "BUENOS AIRES ZONA 1", "BUENOS AIRES ZONA 2", "BUENOS AIRES ZONA 3", "CAPITAL", 
+            "CATAMARCA", "CHACO", "CHUBUT", "CORDOBA", "CORRIENTES", "ENTRE RIOS", "FORMOSA", 
+            "GBA NOROESTE", "GBA NORTE", "GBA OESTE", "GBA SUR", "JUJUY", "LA PAMPA", "LA PLATA", 
+            "LA RIOJA", "MAR DEL PLATA", "MENDOZA", "MISIONES", "NEUQUEN", "RIO NEGRO", "ROSARIO", 
+            "SALTA", "SAN JUAN", "SAN LUIS", "SANTA CRUZ", "SANTA FE", "SANTIAGO DEL ESTERO", 
+            "TIERRA DEL FUEGO", "TRENQUE LAUQUEN", "TUCUMAN"
+        ];
+
         $(document).ready(function() {
-            // Cargar el archivo CSV
+            // Cargar opciones de Seccional
+            seccionales.forEach(sec => {
+                $('#filtro-seccional').append(`<option value="${sec}">${sec}</option>`);
+            });
+
+            // Cargar opciones de Tipo de Prestador
+            Object.keys(tipoEspecialidad).forEach(tipo => {
+                $('#filtro-tipo').append(`<option value="${tipo}">${tipo}</option>`);
+            });
+
+            // Actualizar Especialidades según Tipo de Prestador seleccionado
+            $('#filtro-tipo').on('change', function() {
+                const tipo = $(this).val();
+                $('#filtro-especialidad').empty().append('<option value="">Todas</option>');
+                
+                if (tipo) {
+                    tipoEspecialidad[tipo].forEach(esp => {
+                        $('#filtro-especialidad').append(`<option value="${esp}">${esp}</option>`);
+                    });
+                }
+            });
+
+            // Cargar datos desde CSV (ajusta la ruta)
             Papa.parse("data/prestadores.csv", {
                 download: true,
                 header: true,
@@ -68,50 +115,34 @@
                         data: datos,
                         columns: [
                             { data: 'Nombre' },
+                            { data: 'CUIT' },
+                            { data: 'NroPrestador' },
+                            { data: 'Sucursal' },
+                            { data: 'Provincia' },
                             { data: 'Seccional' },
+                            { data: 'Partido' },
+                            { data: 'Localidad' },
+                            { data: 'Domicilio' },
+                            { data: 'Telefono' },
                             { data: 'Tipo de Prestador' },
-                            { data: 'Especialidad' },
-                            { data: 'Localidad' }
-                            <!-- Ajusta según tus columnas -->
+                            { data: 'Especialidad' }
                         ],
                         language: {
                             url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'
-                        }
+                        },
+                        scrollX: true,  // Para tablas anchas
+                        pageLength: 10   // Mostrar 10 registros por página
                     });
 
-                    // Llenar filtros (Seccional y Tipo)
-                    const seccionales = [...new Set(datos.map(item => item.Seccional))];
-                    const tipos = [...new Set(datos.map(item => item['Tipo de Prestador']))];
-                    
-                    seccionales.forEach(sec => {
-                        $('#filtro-seccional').append(`<option value="${sec}">${sec}</option>`);
-                    });
-                    
-                    tipos.forEach(tipo => {
-                        $('#filtro-tipo').append(`<option value="${tipo}">${tipo}</option>`);
-                    });
-
-                    // Filtros dinámicos
-                    $('#filtro-seccional, #filtro-tipo, #filtro-especialidad').on('change', function() {
+                    // Aplicar filtros
+                    $('.filtros select').on('change', function() {
                         const seccional = $('#filtro-seccional').val();
                         const tipo = $('#filtro-tipo').val();
                         const especialidad = $('#filtro-especialidad').val();
                         
-                        // Combinar filtros
-                        tabla.column(1).search(seccional).column(2).search(tipo).column(3).search(especialidad).draw();
-                    });
-
-                    // Actualizar Especialidades según Tipo de Prestador
-                    $('#filtro-tipo').on('change', function() {
-                        const tipo = $(this).val();
-                        const especialidadesFiltradas = tipo 
-                            ? [...new Set(datos.filter(item => item['Tipo de Prestador'] === tipo).map(item => item.Especialidad))]
-                            : [...new Set(datos.map(item => item.Especialidad))];
-                        
-                        $('#filtro-especialidad').empty().append('<option value="">Todas</option>');
-                        especialidadesFiltradas.forEach(esp => {
-                            $('#filtro-especialidad').append(`<option value="${esp}">${esp}</option>`);
-                        });
+                        tabla.column(5).search(seccional).draw();  // Seccional (columna 5)
+                        tabla.column(10).search(tipo).draw();      // Tipo de Prestador (columna 10)
+                        tabla.column(11).search(especialidad).draw(); // Especialidad (columna 11)
                     });
                 }
             });
