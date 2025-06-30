@@ -54,7 +54,7 @@
                 <th>Localidad</th>
                 <th>Domicilio</th>
                 <th>Telefono</th>
-                <th>Tipo de Prestador</th>
+                <th>Tipo de prestador</th>  <!-- ¡Atención a minúsculas! -->
                 <th>Especialidad</th>
             </tr>
         </thead>
@@ -72,7 +72,7 @@
             "DIAGNOSTICO Y TRATAMIENTO": ["Anatomia Patologia", "Audiometria", "Camara Gamma - Medicina Nuclear - Radioisotopos", "Campo visual computarizado", "Colposcopia", "Densitometria Osea", "Drenaje Linfatico", "Eco-Doppler", "Ecografia", "Ecografia Infantil", "Eco Estres", "Electrocardiograma", "Electroencefalograma", "Electromiograma", "Endoscopia Digestiva", "Endoscopia Ginecologica", "Endoscopia Respiratoria", "Endoscopia Urologica", "Ergometria", "Espinograma", "Espirometria", "Espirometria Infantil", "Estudios mamarios", "Fonoaudiologia y Foniatria", "Hemodinamia", "Holter", "Infiltraciones", "Kinesiologia", "Kinesiologia en interancion", "Laboratorio Alergia e Inmunologia", "Laboratorio Bacteriologia y Serologia", "Laboratorio Dosaje Hormonal", "Laboratorio Estudios Metabolicos - Fosfacalcicos", "Laboratorio Estudios Nefrologicos", "Laboratorio Hematologia - Hemostasia - Trombosis", "Laboratorio Micologia", "Laboratorio Radioinmunoensayo", "Laboratorio Virologia", "Litotricia", "Mapeo Cerebral", "Monitoreo Fetal", "PET", "Polisomnografia", "Potenciales Evocados", "Presurometria", "Psicologia", "Psicologia Infantil", "Psicopedagogia", "Psicoprofilaxis del parto", "Puncion Mamaria", "Puncion Tiroide", "Quimioterapia", "Radiologia", "Radiologia Infantil", "Radioterapia", "Rehabilitacion Cardiaca", "Rehabilitacion Vestibular", "Resonador abierto", "Resonancia Magnetica Nuclear", "RPG", "Tomografia Computada", "Tomografo abierto", "Urodinamia", "Urodinamia Infantil"]
         };
 
-        // Precargar Seccionales (ajusta según tus datos)
+        // Precargar Seccionales
         const seccionales = [
             "BAHIA BLANCA", "BUENOS AIRES ZONA 1", "BUENOS AIRES ZONA 2", "BUENOS AIRES ZONA 3", "CAPITAL", 
             "CATAMARCA", "CHACO", "CHUBUT", "CORDOBA", "CORRIENTES", "ENTRE RIOS", "FORMOSA", 
@@ -105,7 +105,7 @@
                 }
             });
 
-            // Cargar datos desde CSV (ajusta la ruta)
+            // Cargar datos desde CSV
             Papa.parse("Data.csv", {
                 download: true,
                 header: true,
@@ -124,14 +124,14 @@
                             { data: 'Localidad' },
                             { data: 'Domicilio' },
                             { data: 'Telefono' },
-                            { data: 'Tipo de Prestador' },
+                            { data: 'Tipo de prestador' },  // ¡Clave ajustada a minúsculas!
                             { data: 'Especialidad' }
                         ],
                         language: {
                             url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'
                         },
-                        scrollX: true,  // Para tablas anchas
-                        pageLength: 10   // Mostrar 10 registros por página
+                        scrollX: true,
+                        pageLength: 10
                     });
 
                     // Aplicar filtros
@@ -140,8 +140,8 @@
                         const tipo = $('#filtro-tipo').val();
                         const especialidad = $('#filtro-especialidad').val();
                         
-                        tabla.column(5).search(seccional).draw();  // Seccional (columna 5)
-                        tabla.column(10).search(tipo).draw();      // Tipo de Prestador (columna 10)
+                        tabla.column(5).search(seccional).draw();   // Seccional (columna 5)
+                        tabla.column(10).search(tipo).draw();       // Tipo de prestador (columna 10)
                         tabla.column(11).search(especialidad).draw(); // Especialidad (columna 11)
                     });
                 }
