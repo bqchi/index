@@ -16,11 +16,31 @@
         body { font-family: Arial, sans-serif; margin: 20px; }
         .filtros { margin-bottom: 20px; }
         select { padding: 5px; margin-right: 10px; width: 200px; }
-        table { font-size: 14px; }
-        /* Ajuste de altura de filas */
-        #tabla-prestadores tbody tr {
-            height: 20px !important;
-            line-height: 20px !important;
+        table { 
+            font-size: 14px; 
+            border-collapse: collapse; 
+            width: 100%; 
+        }
+        th, td { 
+            border: 1px solid #ddd; 
+            padding: 10px; 
+            text-align: left; 
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .details-control {
+            cursor: pointer;
+            background-color: #4CAF50; /* Verde */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+        }
+        .details-child {
+            background-color: #f9f9f9;
+            padding: 10px;
         }
     </style>
 </head>
@@ -46,17 +66,14 @@
     </div>
     
     <!-- Tabla -->
-    <table id="tabla-prestadores" class="display" style="width:100%">
+    <table id="tabla-prestadores" class="display">
         <thead>
             <tr>
+                <th></th>
                 <th>Nombre</th>
-                <th>NroPrestador</th>
+                <th>Nro Prestador</th>
                 <th>Seccional</th>
-                <th>Partido</th>
-                <th>Localidad</th>
-                <th>Domicilio</th>
-                <th>Telefono</th>
-                <th>Tipo de prestador</th>
+                <th>Tipo de Prestador</th>
                 <th>Especialidad</th>
             </tr>
         </thead>
@@ -66,22 +83,20 @@
     <script>
         // Precargar la relación Tipo de Prestador -> Especialidad
         const tipoEspecialidad = {
-            "GuardiaActiva": ["Cardiologica", "Clinica", "General", "Ginecologica", "Obstetrica", "Odontologica", "Oftalmologica", "Otorrinolaringologia", "Pediatrica", "Por Electrocucion", "Por envenenamiento", "Por intoxicacion", "Por mordedura de animales", "Psiquiatrica", "Quemados", "Quirurgica", "Traumatologica"],
-            "GuardiaPasiva": ["Cardiologica", "Clinica", "General", "Ginecologica", "Obstetrica", "Oftalmologica", "Otorrinolaringologia", "Pediatrica", "Psiquiatrica", "Quemados", "Quirurgica", "Traumatologica"],
-            "EspecialidadesAmbulatorio": ["Adolescencia", "Alergia e Inmunologia", "Alergia e Inmunologia Infantil", "Andrologia", "Cardiologia", "Cardiologia Infantil", "Clinica Medica", "Dermatologia", "Dermatologia Infantil", "Diabetologia", "Diabetologia Infantil", "Endocrinologia", "Endocrinologia Infantil", "Estomatologia", "Fisiatria", "Flebologia y Linfologia", "Fonoaudiologia", "Gastroenterologia", "Gastroenterologia Infantil", "Genetica", "Geriatria", "Ginecologia", "Ginecologia Infanto Juvenil", "Hematologia e Inmunologia", "Hematologia e Inmunología Infantil", "Hemoterapia", "Hemoterapia Infantil", "Hepatologia", "Infectologia", "Infectologia Infantil", "Medicina Familiar", "Micologia", "Nefrologia", "Nefrologia Infantil", "Neonatologia", "Neumonologia", "Neumonologia Infantil", "Neurocirugia", "Neurologia", "Neurologia Infantil", "Nutricion", "Nutricion Infantil", "Obstetricia", "Odontologia", "Oftalmologia", "Oftalmologia Infantil", "Oncologia", "Oncologia Infantil", "Osteoporosis y Litiasis renal", "Otorrinolaringologia", "Otorrinolaringologia Infantil", "Patologia Mamaria", "Pediatria", "Proctologia", "Psicologia", "Psiquiatria", "Psiquiatria Infantil", "Quemados", "Reumatologia", "Traumatologia y Ortopedia", "Traumatologia y Ortopedia Infantil", "Urologia", "Urologia Infantil"],
-            "Internacion": ["Internacion Cardiologica", "Internacion Neurologia", "Internacion Oftalmologica", "Internacion Otorrinolaringologica", "Internacion por Rehabilitacion", "Internacion Psiquiatrica", "Internacion Traumatologica", "Maternidad", "Pediatrica", "Piso", "Respirador", "Telemetria", "Terapia Intermedia", "UCO", "UTI", "UTINeo", "UTIP"],
-            "Cirugias": ["Artroscopica", "Cabeza y Cuello", "Cardiaca", "Cardiaca Infantil", "Endoscopica", "General", "Ginecologia", "Infantil", "Laparoscopica", "Miembro Superior y Mano", "Nariz y oido", "Neurocirugia", "Oftalmologica", "Pierna y Pie", "Plastica Reparadora", "Toracica", "Urologia", "Vascular Periferica"],
-            "Diagnostico": ["Anatomia Patologia", "Audiometria", "Camara Gamma - Medicina Nuclear - Radioisotopos", "Campo visual computarizado", "Colposcopia", "Densitometria Osea", "Drenaje Linfatico", "Eco-Doppler", "Ecografia", "Ecografia Infantil", "Eco Estres", "Electrocardiograma", "Electroencefalograma", "Electromiograma", "Endoscopia Digestiva", "Endoscopia Ginecologica", "Endoscopia Respiratoria", "Endoscopia Urologica", "Ergometria", "Espinograma", "Espirometria", "Espirometria Infantil", "Estudios mamarios", "Fonoaudiologia y Foniatria", "Hemodinamia", "Holter", "Infiltraciones", "Kinesiologia", "Kinesiologia en interancion", "Laboratorio Alergia e Inmunologia", "Laboratorio Bacteriologia y Serologia", "Laboratorio Dosaje Hormonal", "Laboratorio Estudios Metabolicos - Fosfacalcicos", "Laboratorio Estudios Nefrologicos", "Laboratorio Hematologia - Hemostasia - Trombosis", "Laboratorio Micologia", "Laboratorio Radioinmunoensayo", "Laboratorio Virologia", "Litotricia", "Mapeo Cerebral", "Monitoreo Fetal", "PET", "Polisomnografia", "Potenciales Evocados", "Presurometria", "Psicologia", "Psicologia Infantil", "Psicopedagogia", "Psicoprofilaxis del parto", "Puncion Mamaria", "Puncion Tiroide", "Quimioterapia", "Radiologia", "Radiologia Infantil", "Radioterapia", "Rehabilitacion Cardiaca", "Rehabilitacion Vestibular", "Resonador abierto", "Resonancia Magnetica Nuclear", "RPG", "Tomografia Computada", "Tomografo abierto", "Urodinamia", "Urodinamia Infantil"]
+            "GuardiaActiva": ["Cardiologica", "Clinica", "General", "Ginecologica"],
+            "GuardiaPasiva": ["Cardiologica", "Clinica", "General", "Ginecologica"],
+            "EspecialidadesAmbulatorio": ["Cardiologia", "Dermatologia"],
+            "Internacion": ["Internacion Cardiologica"],
+            "Cirugias": ["General"],
+            "Diagnostico": ["Anatomia Patologia"]
         };
 
         // Precargar Seccionales
         const seccionales = [
-            "BAHIA BLANCA", "BUENOS AIRES ZONA 1", "BUENOS AIRES ZONA 2", "BUENOS AIRES ZONA 3", "CAPITAL", 
-            "CATAMARCA", "CHACO", "CHUBUT", "CORDOBA", "CORRIENTES", "ENTRE RIOS", "FORMOSA", 
-            "GBA NOROESTE", "GBA NORTE", "GBA OESTE", "GBA SUR", "JUJUY", "LA PAMPA", "LA PLATA", 
-            "LA RIOJA", "MAR DEL PLATA", "MENDOZA", "MISIONES", "NEUQUEN", "RIO NEGRO", "ROSARIO", 
-            "SALTA", "SAN JUAN", "SAN LUIS", "SANTA CRUZ", "SANTA FE", "SANTIAGO DEL ESTERO", 
-            "TIERRA DEL FUEGO", "TRENQUE LAUQUEN", "TUCUMAN"
+            "BAHIA BLANCA", "BUENOS AIRES ZONA 1", "CAPITAL", "CATAMARCA", "CHACO", 
+            "CORDOBA", "CORRIENTES", "ENTRE RIOS", "GBA NORTE", "JUJUY", "LA PAMPA", 
+            "LA PLATA", "MENDOZA", "MISIONES", "NEUQUEN", "RIO NEGRO", "SALTA", 
+            "SAN JUAN", "SANTA FE", "TIERRA DEL FUEGO"
         ];
 
         $(document).ready(function() {
@@ -113,29 +128,58 @@
                 header: true,
                 delimiter: ";",
                 complete: function(results) {
-                    console.log("Datos cargados:", results.data); // Depuración
                     const datosFiltrados = results.data.filter(row => row.CUIT && row.CUIT.trim() !== "");
 
                     // Configurar DataTables
                     const tabla = $('#tabla-prestadores').DataTable({
                         data: datosFiltrados,
                         columns: [
+                            {
+                                data: null, 
+                                defaultContent: '<button class="details-control">+</button>', 
+                                orderable: false 
+                            },
                             { data: 'Nombre', defaultContent: '' },
                             { data: 'NroPrestador', defaultContent: '' },
                             { data: 'Seccional', defaultContent: '' },
-                            { data: 'Partido', defaultContent: '' },
-                            { data: 'Localidad', defaultContent: '' },
-                            { data: 'Domicilio', defaultContent: '' },
-                            { data: 'Telefono', defaultContent: '' },
                             { data: 'Tipo de prestador', defaultContent: '' },
                             { data: 'Especialidad', defaultContent: '' }
                         ],
                         language: {
                             url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'
                         },
-                        scrollX: true,
-                        pageLength: 10
                     });
+
+                    // Manejar clic en el botón de detalles
+                    $('#tabla-prestadores tbody').on('click', 'button.details-control', function () {
+                        const tr = $(this).closest('tr');
+                        const row = tabla.row(tr);
+
+                        if (row.child.isShown()) {
+                            // Si ya se muestra la información, ocultarla
+                            row.child.hide();
+                            tr.removeClass('shown');
+                            $(this).text('+'); // Cambia el botón a "+"
+                        } else {
+                            // Crear el contenido para la fila expandida
+                            row.child(createDetailsRow(row.data())).show();
+                            tr.addClass('shown');
+                            $(this).text('-'); // Cambia el botón a "-"
+                        }
+                    });
+
+                    // Crear el contenido de la fila expandida
+                    function createDetailsRow(detalles) {
+                        return `
+                            <div class="details-child">
+                                <table style="width:100%;">
+                                    <tr><th>Partido:</th><td>${detalles.Partido || 'N/A'}</td></tr>
+                                    <tr><th>Localidad:</th><td>${detalles.Localidad || 'N/A'}</td></tr>
+                                    <tr><th>Domicilio:</th><td>${detalles.Domicilio || 'N/A'}</td></tr>
+                                    <tr><th>Telefono:</th><td>${detalles.Telefono || 'N/A'}</td></tr>
+                                </table>
+                            </div>`;
+                    }
 
                     // Aplicar filtros
                     $('.filtros select').on('change', function() {
@@ -143,9 +187,9 @@
                         const tipo = $('#filtro-tipo').val();
                         const especialidad = $('#filtro-especialidad').val();
                         
-                        tabla.column(2).search(seccional).draw();   // Seccional (columna 2)
-                        tabla.column(7).search(tipo).draw();        // Tipo de prestador (columna 7)
-                        tabla.column(8).search(especialidad).draw(); // Especialidad (columna 8)
+                        tabla.column(3).search(seccional).draw();   // Seccional (columna 3)
+                        tabla.column(4).search(tipo).draw();        // Tipo de prestador (columna 4)
+                        tabla.column(5).search(especialidad).draw(); // Especialidad (columna 5)
                     });
                 }
             });
