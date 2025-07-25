@@ -150,11 +150,12 @@
                 complete: function(results) {
                     const datosFiltrados = results.data.filter(row => row.CUIT && row.CUIT.trim() !== "");
 
-                    // Agrupar proveedores por CUIT
+                    // Agrupar proveedores por CUIT en la vista clásica
                     const providersMap = {};
                     datosFiltrados.forEach(row => {
-                        if (!providersMap[row.CUIT]) {
-                            providersMap[row.CUIT] = {
+                        const key = row.CUIT;
+                        if (!providersMap[key]) {
+                            providersMap[key] = {
                                 Nombre: row.Nombre,
                                 NroPrestador: row.NroPrestador,
                                 Seccional: row.Seccional,
@@ -165,33 +166,33 @@
                                 practices: [] // Array para prácticas
                             };
                         }
-                        providersMap[row.CUIT].practices.push({
+                        providersMap[key].practices.push({
                             tipo: row['Tipo de prestador'],
                             especialidad: row['Especialidad']
                         });
                     });
 
-                    // Convertir el objeto en un array
-                    const providers = Object.values(providersMap);
-
+                    // Convertir el objeto en un array para la vista compacta
+                    const providersCompact = Object.values(providersMap);
+                    
                     // Configurar DataTables
                     const tabla = $('#tabla-prestadores').DataTable({
-                        data: providers,
+                        data: datosFiltrados, // Inicialmente mostramos los datos completos
                         columns: [
                             { data: null, defaultContent: '<button class="details-control">+</button>', orderable: false },
                             { data: 'Nombre', defaultContent: '' },
                             { data: 'NroPrestador', defaultContent: '' },
                             { data: 'Seccional', defaultContent: '' },
-                            { data: null, defaultContent: '' }, // Para Tipo de prestador (dejar vacío)
-                            { data: null, defaultContent: '' }  // Para Especialidad (dejar vacío)
+                            { data: 'Tipo de prestador', defaultContent: '' },
+                            { data: 'Especialidad', defaultContent: '' }
                         ],
                         language: {
                             url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'
                         },
                     });
 
-                    // Variables para gestionar el modo de vista
-                    let currentViewMode = 'original'; // Modo inicial
+                    // Variables para gestionar el modo de vista (clásico y compacto)
+                    let currentViewMode = 'classic'; // Modo inicial
 
                     // Manejar clic en el botón de detalles
                     $('#tabla-prestadores tbody').on('click', 'button.details-control', function () {
@@ -205,18 +206,32 @@
                             $(this).text('+'); // Cambia el botón a "+"
                         } else {
                             // Crear el contenido para la fila expandida
-                            row.child(createDetailsRow(row.data())).show();
+                            const expandedData = currentViewMode === 'compact' ? getProviderDetails(row.data(), providersCompact) : createDetailsRow(row.data());
+                            row.child(expandedData).show();
                             tr.addClass('shown');
                             $(this).text('-'); // Cambia el botón a "-"
                         }
                     });
 
-                    // Crear el contenido de la fila expandida
-                    function createDetailsRow(detalles) {
-                        let practices = detalles.practices.map(
-                            p => `${p.tipo} - ${p.especialidad}`
-                        ).join('<br>') || 'Sin prácticas';
+                    // Obtener detalles del proveedor para la vista compacta
+                    function getProviderDetails(detalles, providers) {
+                        const providerDetails = providers.find(p => p.Nombre === detalles.Nombre && p.NroPrestador === detalles.NroPrestador);
+                        const practices = providerDetails.practices?.map(p => `${p.tipo} - ${p.especialidad}`).join('<br>') || 'Sin prácticas';
 
+                        return `
+                            <div class="details-child">
+                                <table style="width:100%;">
+                                    <tr><th>Partido:</th><td>${providerDetails.Partido || 'N/A'}</td></tr>
+                                    <tr><th>Localidad:</th><td>${providerDetails.Localidad || 'N/A'}</td></tr>
+                                    <tr><th>Domicilio:</th><td>${providerDetails.Domicilio || 'N/A'}</td></tr>
+                                    <tr><th>Telefono:</th><td>${providerDetails.Telefono || 'N/A'}</td></tr>
+                                    <tr><th>Prácticas:</th><td>${practices}</td></tr>
+                                </table>
+                            </div>`;
+                    }
+
+                    // Crear el contenido de la fila expandida para la vista clásica
+                    function createDetailsRow(detalles) {
                         return `
                             <div class="details-child">
                                 <table style="width:100%;">
@@ -224,7 +239,6 @@
                                     <tr><th>Localidad:</th><td>${detalles.Localidad || 'N/A'}</td></tr>
                                     <tr><th>Domicilio:</th><td>${detalles.Domicilio || 'N/A'}</td></tr>
                                     <tr><th>Telefono:</th><td>${detalles.Telefono || 'N/A'}</td></tr>
-                                    <tr><th>Prácticas:</th><td>${practices}</td></tr>
                                 </table>
                             </div>`;
                     }
@@ -232,13 +246,15 @@
                     // Botón para alternar entre las vistas
                     $('#toggle-view-btn').click(function() {
                         // Cambiar el modo de vista
-                        currentViewMode = (currentViewMode === 'original') ? 'compact' : 'original';
+                        currentViewMode = (currentViewMode === 'classic') ? 'compact' : 'classic';
 
-                        // Alternar visibilidad de columnas
+                        // Si estamos en modo compacto, usar los datos agrupados
                         if (currentViewMode === 'compact') {
+                            tabla.clear().rows.add(providersCompact).draw(); // Cargar datos compactos
                             tabla.columns([4, 5]).visible(false); // Ocultar Tipo de Prestador y Especialidad
                             $(this).text('ver vista completa'); // Cambiar texto del botón
                         } else {
+                            tabla.clear().rows.add(datosFiltrados).draw(); // Volver a cargar datos clásicos
                             tabla.columns([4, 5]).visible(true); // Mostrar Tipo de Prestador y Especialidad
                             $(this).text('ver solo los prestadores'); // Cambiar texto del botón
                         }
