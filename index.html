@@ -150,20 +150,40 @@
                 complete: function(results) {
                     const datosFiltrados = results.data.filter(row => row.CUIT && row.CUIT.trim() !== "");
 
+                    // Agrupar proveedores por CUIT
+                    const providersMap = {};
+                    datosFiltrados.forEach(row => {
+                        if (!providersMap[row.CUIT]) {
+                            providersMap[row.CUIT] = {
+                                Nombre: row.Nombre,
+                                NroPrestador: row.NroPrestador,
+                                Seccional: row.Seccional,
+                                Partido: row.Partido,
+                                Localidad: row.Localidad,
+                                Domicilio: row.Domicilio,
+                                Telefono: row.Telefono,
+                                practices: [] // Array para prácticas
+                            };
+                        }
+                        providersMap[row.CUIT].practices.push({
+                            tipo: row['Tipo de prestador'],
+                            especialidad: row['Especialidad']
+                        });
+                    });
+
+                    // Convertir el objeto en un array
+                    const providers = Object.values(providersMap);
+
                     // Configurar DataTables
                     const tabla = $('#tabla-prestadores').DataTable({
-                        data: datosFiltrados,
+                        data: providers,
                         columns: [
-                            {
-                                data: null, 
-                                defaultContent: '<button class="details-control">+</button>', 
-                                orderable: false 
-                            },
+                            { data: null, defaultContent: '<button class="details-control">+</button>', orderable: false },
                             { data: 'Nombre', defaultContent: '' },
                             { data: 'NroPrestador', defaultContent: '' },
                             { data: 'Seccional', defaultContent: '' },
-                            { data: 'Tipo de prestador', defaultContent: '' },
-                            { data: 'Especialidad', defaultContent: '' }
+                            { data: null, defaultContent: '' }, // Para Tipo de prestador (dejar vacío)
+                            { data: null, defaultContent: '' }  // Para Especialidad (dejar vacío)
                         ],
                         language: {
                             url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'
@@ -193,30 +213,20 @@
 
                     // Crear el contenido de la fila expandida
                     function createDetailsRow(detalles) {
-                        let practicas = `${detalles['Tipo de prestador'] || 'N/A'} - ${detalles['Especialidad'] || 'N/A'}`;
+                        let practices = detalles.practices.map(
+                            p => `${p.tipo} - ${p.especialidad}`
+                        ).join('<br>') || 'Sin prácticas';
 
-                        if (currentViewMode === 'compact') {
-                            return `
-                                <div class="details-child">
-                                    <table style="width:100%;">
-                                        <tr><th>Partido:</th><td>${detalles.Partido || 'N/A'}</td></tr>
-                                        <tr><th>Localidad:</th><td>${detalles.Localidad || 'N/A'}</td></tr>
-                                        <tr><th>Domicilio:</th><td>${detalles.Domicilio || 'N/A'}</td></tr>
-                                        <tr><th>Telefono:</th><td>${detalles.Telefono || 'N/A'}</td></tr>
-                                        <tr><th>Prácticas:</th><td>${practicas}</td></tr>
-                                    </table>
-                                </div>`;
-                        } else {
-                            return `
-                                <div class="details-child">
-                                    <table style="width:100%;">
-                                        <tr><th>Partido:</th><td>${detalles.Partido || 'N/A'}</td></tr>
-                                        <tr><th>Localidad:</th><td>${detalles.Localidad || 'N/A'}</td></tr>
-                                        <tr><th>Domicilio:</th><td>${detalles.Domicilio || 'N/A'}</td></tr>
-                                        <tr><th>Telefono:</th><td>${detalles.Telefono || 'N/A'}</td></tr>
-                                    </table>
-                                </div>`;
-                        }
+                        return `
+                            <div class="details-child">
+                                <table style="width:100%;">
+                                    <tr><th>Partido:</th><td>${detalles.Partido || 'N/A'}</td></tr>
+                                    <tr><th>Localidad:</th><td>${detalles.Localidad || 'N/A'}</td></tr>
+                                    <tr><th>Domicilio:</th><td>${detalles.Domicilio || 'N/A'}</td></tr>
+                                    <tr><th>Telefono:</th><td>${detalles.Telefono || 'N/A'}</td></tr>
+                                    <tr><th>Prácticas:</th><td>${practices}</td></tr>
+                                </table>
+                            </div>`;
                     }
 
                     // Botón para alternar entre las vistas
