@@ -45,7 +45,7 @@
         </select>
     </div>
     
-    <!-- Tabla (sin columnas CUIT, Sucursal, Provincia en el HTML) -->
+    <!-- Tabla -->
     <table id="tabla-prestadores" class="display" style="width:100%">
         <thead>
             <tr>
@@ -68,7 +68,7 @@
         const tipoEspecialidad = {
             "GuardiaActiva": ["Cardiologica", "Clinica", "General", "Ginecologica", "Obstetrica", "Odontologica", "Oftalmologica", "Otorrinolaringologia", "Pediatrica", "Por Electrocucion", "Por envenenamiento", "Por intoxicacion", "Por mordedura de animales", "Psiquiatrica", "Quemados", "Quirurgica", "Traumatologica"],
             "GuardiaPasiva": ["Cardiologica", "Clinica", "General", "Ginecologica", "Obstetrica", "Oftalmologica", "Otorrinolaringologia", "Pediatrica", "Psiquiatrica", "Quemados", "Quirurgica", "Traumatologica"],
-            "EspecialidadesAmbulatorio": ["Adolescencia", "Alergia e Inmunologia", "Alergia e Inmunologia Infantil", "Andrologia", "Cardiologia", "Cardiologia Infantil", "Clinica Medica", "Dermatologia", "Dermatologia Infantil", "Diabetologia", "Diabetologia Infantil", "Endocrinologia", "Endocrinologia Infantil", "Estomatologia", "Fisiatria", "Flebologia y Linfologia", "Fonoaudiologia", "Gastroenterologia", "Gastroenterologia Infantil", "Genetica", "Geriatria", "Ginecologia", "Ginecologia Infanto Juvenil", "Hematologia e Inmunologia", "Hematologia e Inmunologia Infantil", "Hemoterapia", "Hemoterapia Infantil", "Hepatologia", "Infectologia", "Infectologia Infantil", "Medicina Familiar", "Micologia", "Nefrologia", "Nefrologia Infantil", "Neonatologia", "Neumonologia", "Neumonologia Infantil", "Neurocirugia", "Neurologia", "Neurologia Infantil", "Nutricion", "Nutricion Infantil", "Obstetricia", "Odontologia", "Oftalmologia", "Oftalmologia Infantil", "Oncologia", "Oncologia Infantil", "Osteoporosis y Litiasis renal", "Otorrinolaringologia", "Otorrinolaringologia Infantil", "Patologia Mamaria", "Pediatria", "Proctologia", "Psicologia", "Psiquiatria", "Psiquiatria Infantil", "Quemados", "Reumatologia", "Traumatologia y Ortopedia", "Traumatologia y Ortopedia Infantil", "Urologia", "Urologia Infantil"],
+            "EspecialidadesAmbulatorio": ["Adolescencia", "Alergia e Inmunologia", "Alergia e Inmunologia Infantil", "Andrologia", "Cardiologia", "Cardiologia Infantil", "Clinica Medica", "Dermatologia", "Dermatologia Infantil", "Diabetologia", "Diabetologia Infantil", "Endocrinologia", "Endocrinologia Infantil", "Estomatologia", "Fisiatria", "Flebologia y Linfologia", "Fonoaudiologia", "Gastroenterologia", "Gastroenterologia Infantil", "Genetica", "Geriatria", "Ginecologia", "Ginecologia Infanto Juvenil", "Hematologia e Inmunologia", "Hematologia e Inmunología Infantil", "Hemoterapia", "Hemoterapia Infantil", "Hepatologia", "Infectologia", "Infectologia Infantil", "Medicina Familiar", "Micologia", "Nefrologia", "Nefrologia Infantil", "Neonatologia", "Neumonologia", "Neumonologia Infantil", "Neurocirugia", "Neurologia", "Neurologia Infantil", "Nutricion", "Nutricion Infantil", "Obstetricia", "Odontologia", "Oftalmologia", "Oftalmologia Infantil", "Oncologia", "Oncologia Infantil", "Osteoporosis y Litiasis renal", "Otorrinolaringologia", "Otorrinolaringologia Infantil", "Patologia Mamaria", "Pediatria", "Proctologia", "Psicologia", "Psiquiatria", "Psiquiatria Infantil", "Quemados", "Reumatologia", "Traumatologia y Ortopedia", "Traumatologia y Ortopedia Infantil", "Urologia", "Urologia Infantil"],
             "Internacion": ["Internacion Cardiologica", "Internacion Neurologia", "Internacion Oftalmologica", "Internacion Otorrinolaringologica", "Internacion por Rehabilitacion", "Internacion Psiquiatrica", "Internacion Traumatologica", "Maternidad", "Pediatrica", "Piso", "Respirador", "Telemetria", "Terapia Intermedia", "UCO", "UTI", "UTINeo", "UTIP"],
             "Cirugias": ["Artroscopica", "Cabeza y Cuello", "Cardiaca", "Cardiaca Infantil", "Endoscopica", "General", "Ginecologia", "Infantil", "Laparoscopica", "Miembro Superior y Mano", "Nariz y oido", "Neurocirugia", "Oftalmologica", "Pierna y Pie", "Plastica Reparadora", "Toracica", "Urologia", "Vascular Periferica"],
             "Diagnostico": ["Anatomia Patologia", "Audiometria", "Camara Gamma - Medicina Nuclear - Radioisotopos", "Campo visual computarizado", "Colposcopia", "Densitometria Osea", "Drenaje Linfatico", "Eco-Doppler", "Ecografia", "Ecografia Infantil", "Eco Estres", "Electrocardiograma", "Electroencefalograma", "Electromiograma", "Endoscopia Digestiva", "Endoscopia Ginecologica", "Endoscopia Respiratoria", "Endoscopia Urologica", "Ergometria", "Espinograma", "Espirometria", "Espirometria Infantil", "Estudios mamarios", "Fonoaudiologia y Foniatria", "Hemodinamia", "Holter", "Infiltraciones", "Kinesiologia", "Kinesiologia en interancion", "Laboratorio Alergia e Inmunologia", "Laboratorio Bacteriologia y Serologia", "Laboratorio Dosaje Hormonal", "Laboratorio Estudios Metabolicos - Fosfacalcicos", "Laboratorio Estudios Nefrologicos", "Laboratorio Hematologia - Hemostasia - Trombosis", "Laboratorio Micologia", "Laboratorio Radioinmunoensayo", "Laboratorio Virologia", "Litotricia", "Mapeo Cerebral", "Monitoreo Fetal", "PET", "Polisomnografia", "Potenciales Evocados", "Presurometria", "Psicologia", "Psicologia Infantil", "Psicopedagogia", "Psicoprofilaxis del parto", "Puncion Mamaria", "Puncion Tiroide", "Quimioterapia", "Radiologia", "Radiologia Infantil", "Radioterapia", "Rehabilitacion Cardiaca", "Rehabilitacion Vestibular", "Resonador abierto", "Resonancia Magnetica Nuclear", "RPG", "Tomografia Computada", "Tomografo abierto", "Urodinamia", "Urodinamia Infantil"]
@@ -99,7 +99,7 @@
             $('#filtro-tipo').on('change', function() {
                 const tipo = $(this).val();
                 $('#filtro-especialidad').empty().append('<option value="">Todas</option>');
-                
+
                 if (tipo) {
                     tipoEspecialidad[tipo].forEach(esp => {
                         $('#filtro-especialidad').append(`<option value="${esp}">${esp}</option>`);
@@ -116,15 +116,12 @@
                     console.log("Datos cargados:", results.data); // Depuración
                     const datosFiltrados = results.data.filter(row => row.CUIT && row.CUIT.trim() !== "");
 
-                    // Configurar DataTables (columnas CUIT, Sucursal y Provincia ocultas en el HTML)
+                    // Configurar DataTables
                     const tabla = $('#tabla-prestadores').DataTable({
                         data: datosFiltrados,
                         columns: [
                             { data: 'Nombre', defaultContent: '' },
-                            // { data: 'CUIT', defaultContent: '' },      // Columna oculta
                             { data: 'NroPrestador', defaultContent: '' },
-                            // { data: 'Sucursal', defaultContent: '' },  // Columna oculta
-                            // { data: 'Provincia', defaultContent: '' }, // Columna oculta
                             { data: 'Seccional', defaultContent: '' },
                             { data: 'Partido', defaultContent: '' },
                             { data: 'Localidad', defaultContent: '' },
@@ -140,7 +137,7 @@
                         pageLength: 10
                     });
 
-                    // Aplicar filtros (las columnas ocultas siguen disponibles para filtrado)
+                    // Aplicar filtros
                     $('.filtros select').on('change', function() {
                         const seccional = $('#filtro-seccional').val();
                         const tipo = $('#filtro-tipo').val();
