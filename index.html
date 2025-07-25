@@ -90,20 +90,22 @@
     <script>
         // Precargar la relación Tipo de Prestador -> Especialidad
         const tipoEspecialidad = {
-            "GuardiaActiva": ["Cardiologica", "Clinica", "General", "Ginecologica", "Obstetrica", "Odontologica", "Oftalmologica", "Otorrinolaringologia", "Pediatrica"],
-            "GuardiaPasiva": ["Cardiologica", "Clinica", "General", "Ginecologica"],
-            "EspecialidadesAmbulatorio": ["Adolescencia", "Cardiologia", "Dermatologia"],
-            "Internacion": ["Internacion Cardiologica"],
-            "Cirugias": ["General"],
-            "Diagnostico": ["Anatomia Patologia"]
+            "GuardiaActiva": ["Cardiologica", "Clinica", "General", "Ginecologica", "Obstetrica", "Odontologica", "Oftalmologica", "Otorrinolaringologia", "Pediatrica", "Por Electrocucion", "Por envenenamiento", "Por intoxicacion", "Por mordedura de animales", "Psiquiatrica", "Quemados", "Quirurgica", "Traumatologica"],
+            "GuardiaPasiva": ["Cardiologica", "Clinica", "General", "Ginecologica", "Obstetrica", "Oftalmologica", "Otorrinolaringologia", "Pediatrica", "Psiquiatrica", "Quemados", "Quirurgica", "Traumatologica"],
+            "EspecialidadesAmbulatorio": ["Adolescencia", "Alergia e Inmunologia", "Alergia e Inmunologia Infantil", "Andrologia", "Cardiologia", "Cardiologia Infantil", "Clinica Medica", "Dermatologia", "Dermatologia Infantil", "Diabetologia", "Diabetologia Infantil", "Endocrinologia", "Endocrinologia Infantil", "Estomatologia", "Fisiatria", "Flebologia y Linfologia", "Fonoaudiologia", "Gastroenterologia", "Gastroenterologia Infantil", "Genetica", "Geriatria", "Ginecologia", "Ginecologia Infanto Juvenil", "Hematologia e Inmunologia", "Hematologia e Inmunologia Infantil", "Hemoterapia", "Hemoterapia Infantil", "Hepatologia", "Infectologia", "Infectologia Infantil", "Medicina Familiar", "Micologia", "Nefrologia", "Nefrologia Infantil", "Neonatologia", "Neumonologia", "Neumonologia Infantil", "Neurocirugia", "Neurologia", "Neurologia Infantil", "Nutricion", "Nutricion Infantil", "Obstetricia", "Odontologia", "Oftalmologia", "Oftalmologia Infantil", "Oncologia", "Oncologia Infantil", "Osteoporosis y Litiasis renal", "Otorrinolaringologia", "Otorrinolaringologia Infantil", "Patologia Mamaria", "Pediatria", "Proctologia", "Psicologia", "Psiquiatria", "Psiquiatria Infantil", "Quemados", "Reumatologia", "Traumatologia y Ortopedia", "Traumatologia y Ortopedia Infantil", "Urologia", "Urologia Infantil"],
+            "Internacion": ["Internacion Cardiologica", "Internacion Neurologia", "Internacion Oftalmologica", "Internacion Otorrinolaringologica", "Internacion por Rehabilitacion", "Internacion Psiquiatrica", "Internacion Traumatologica", "Maternidad", "Pediatrica", "Piso", "Respirador", "Telemetria", "Terapia Intermedia", "UCO", "UTI", "UTINeo", "UTIP"],
+            "Cirugias": ["Artroscopica", "Cabeza y Cuello", "Cardiaca", "Cardiaca Infantil", "Endoscopica", "General", "Ginecologia", "Infantil", "Laparoscopica", "Miembro Superior y Mano", "Nariz y oido", "Neurocirugia", "Oftalmologica", "Pierna y Pie", "Plastica Reparadora", "Toracica", "Urologia", "Vascular Periferica"],
+            "Diagnostico": ["Anatomia Patologia", "Audiometria", "Camara Gamma - Medicina Nuclear - Radioisotopos", "Campo visual computarizado", "Colposcopia", "Densitometria Osea", "Drenaje Linfatico", "Eco-Doppler", "Ecografia", "Ecografia Infantil", "Eco Estres", "Electrocardiograma", "Electroencefalograma", "Electromiograma", "Endoscopia Digestiva", "Endoscopia Ginecologica", "Endoscopia Respiratoria", "Endoscopia Urologica", "Ergometria", "Espinograma", "Espirometria", "Espirometria Infantil", "Estudios mamarios", "Fonoaudiologia y Foniatria", "Hemodinamia", "Holter", "Infiltraciones", "Kinesiologia", "Kinesiologia en interancion", "Laboratorio Alergia e Inmunologia", "Laboratorio Bacteriologia y Serologia", "Laboratorio Dosaje Hormonal", "Laboratorio Estudios Metabolicos - Fosfacalcicos", "Laboratorio Estudios Nefrologicos", "Laboratorio Hematologia - Hemostasia - Trombosis", "Laboratorio Micologia", "Laboratorio Radioinmunoensayo", "Laboratorio Virologia", "Litotricia", "Mapeo Cerebral", "Monitoreo Fetal", "PET", "Polisomnografia", "Potenciales Evocados", "Presurometria", "Psicologia", "Psicologia Infantil", "Psicopedagogia", "Psicoprofilaxis del parto", "Puncion Mamaria", "Puncion Tiroide", "Quimioterapia", "Radiologia", "Radiologia Infantil", "Radioterapia", "Rehabilitacion Cardiaca", "Rehabilitacion Vestibular", "Resonador abierto", "Resonancia Magnetica Nuclear", "RPG", "Tomografia Computada", "Tomografo abierto", "Urodinamia", "Urodinamia Infantil"]
         };
 
         // Precargar Seccionales
         const seccionales = [
-            "BAHIA BLANCA", "BUENOS AIRES ZONA 1", "CAPITAL", "CATAMARCA", "CHACO", 
-            "CORDOBA", "CORRIENTES", "ENTRE RIOS", "GBA NORTE", "JUJUY", "LA PAMPA", 
-            "LA PLATA", "MENDOZA", "MISIONES", "NEUQUEN", "RIO NEGRO", "SALTA", 
-            "SAN JUAN", "SANTA FE", "TIERRA DEL FUEGO"
+            "BAHIA BLANCA", "BUENOS AIRES ZONA 1", "BUENOS AIRES ZONA 2", "BUENOS AIRES ZONA 3", "CAPITAL", 
+            "CATAMARCA", "CHACO", "CHUBUT", "CORDOBA", "CORRIENTES", "ENTRE RIOS", "FORMOSA", 
+            "GBA NOROESTE", "GBA NORTE", "GBA OESTE", "GBA SUR", "JUJUY", "LA PAMPA", "LA PLATA", 
+            "LA RIOJA", "MAR DEL PLATA", "MENDOZA", "MISIONES", "NEUQUEN", "RIO NEGRO", "ROSARIO", 
+            "SALTA", "SAN JUAN", "SAN LUIS", "SANTA CRUZ", "SANTA FE", "SANTIAGO DEL ESTERO", 
+            "TIERRA DEL FUEGO", "TRENQUE LAUQUEN", "TUCUMAN"
         ];
 
         $(document).ready(function() {
