@@ -49,6 +49,15 @@
         td {
             text-align: center; /* Centra el contenido de la celda */
         }
+        .filtros button {
+            padding: 5px 10px;
+            background-color: #497e76;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px; /* Spacing between dropdown and button */
+        }
     </style>
 </head>
 <body>
@@ -70,6 +79,8 @@
         <select id="filtro-especialidad">
             <option value="">Todas</option>
         </select>
+        
+        <button id="toggle-view-btn" type="button">ver solo los prestadores</button> <!-- New toggle button -->
     </div>
     
     <!-- Tabla -->
@@ -159,6 +170,9 @@
                         },
                     });
 
+                    // Variables para gestionar el modo de vista
+                    let currentViewMode = 'original'; // Modo inicial
+
                     // Manejar clic en el botón de detalles
                     $('#tabla-prestadores tbody').on('click', 'button.details-control', function () {
                         const tr = $(this).closest('tr');
@@ -179,16 +193,58 @@
 
                     // Crear el contenido de la fila expandida
                     function createDetailsRow(detalles) {
-                        return `
-                            <div class="details-child">
-                                <table style="width:100%;">
-                                    <tr><th>Partido:</th><td>${detalles.Partido || 'N/A'}</td></tr>
-                                    <tr><th>Localidad:</th><td>${detalles.Localidad || 'N/A'}</td></tr>
-                                    <tr><th>Domicilio:</th><td>${detalles.Domicilio || 'N/A'}</td></tr>
-                                    <tr><th>Telefono:</th><td>${detalles.Telefono || 'N/A'}</td></tr>
-                                </table>
-                            </div>`;
+                        let practicas = `${detalles['Tipo de prestador'] || 'N/A'} - ${detalles['Especialidad'] || 'N/A'}`;
+
+                        if (currentViewMode === 'compact') {
+                            return `
+                                <div class="details-child">
+                                    <table style="width:100%;">
+                                        <tr><th>Partido:</th><td>${detalles.Partido || 'N/A'}</td></tr>
+                                        <tr><th>Localidad:</th><td>${detalles.Localidad || 'N/A'}</td></tr>
+                                        <tr><th>Domicilio:</th><td>${detalles.Domicilio || 'N/A'}</td></tr>
+                                        <tr><th>Telefono:</th><td>${detalles.Telefono || 'N/A'}</td></tr>
+                                        <tr><th>Prácticas:</th><td>${practicas}</td></tr>
+                                    </table>
+                                </div>`;
+                        } else {
+                            return `
+                                <div class="details-child">
+                                    <table style="width:100%;">
+                                        <tr><th>Partido:</th><td>${detalles.Partido || 'N/A'}</td></tr>
+                                        <tr><th>Localidad:</th><td>${detalles.Localidad || 'N/A'}</td></tr>
+                                        <tr><th>Domicilio:</th><td>${detalles.Domicilio || 'N/A'}</td></tr>
+                                        <tr><th>Telefono:</th><td>${detalles.Telefono || 'N/A'}</td></tr>
+                                    </table>
+                                </div>`;
+                        }
                     }
+
+                    // Botón para alternar entre las vistas
+                    $('#toggle-view-btn').click(function() {
+                        // Cambiar el modo de vista
+                        currentViewMode = (currentViewMode === 'original') ? 'compact' : 'original';
+
+                        // Alternar visibilidad de columnas
+                        if (currentViewMode === 'compact') {
+                            tabla.columns([4, 5]).visible(false); // Ocultar Tipo de Prestador y Especialidad
+                            $(this).text('ver vista completa'); // Cambiar texto del botón
+                        } else {
+                            tabla.columns([4, 5]).visible(true); // Mostrar Tipo de Prestador y Especialidad
+                            $(this).text('ver solo los prestadores'); // Cambiar texto del botón
+                        }
+
+                        // Cerrar todas las filas hijas abiertas
+                        tabla.rows().every(function() {
+                            const row = this;
+                            if (row.child.isShown()) {
+                                row.child.hide();
+                                $(row.node()).removeClass('shown');
+                            }
+                        });
+
+                        // Redibujar para ajustar la visibilidad de las columnas
+                        tabla.columns.adjust().draw();
+                    });
 
                     // Aplicar filtros
                     $('.filtros select').on('change', function() {
