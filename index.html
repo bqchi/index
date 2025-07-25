@@ -1,278 +1,288 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tabla de Prestadores Médicos</title>
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- DataTables JS -->
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <!-- PapaParse para CSV -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .filtros { margin-bottom: 20px; }
-        select { padding: 5px; margin-right: 10px; width: 200px; }
-        table { 
-            font-size: 14px; 
-            border-collapse: collapse; 
-            width: 100%; 
-        }
-        th, td { 
-            border: 1px solid #ddd; 
-            padding: 10px; 
-            text-align: left; 
-        }
-        th {
-            background-color: #497e76; 
-            color: white; 
-            font-weight: bold;
-        }
-        .details-control {
-            display: block; /* Asegura que tome todo el ancho */
-            margin: 0 auto; /* Centra el botón horizontalmente */
-            width: 40px; /* Ajusta el ancho del botón según necesites */
-            text-align: center; /* Centra el texto dentro del botón */
-            background-color: #497e76; /* Verde */
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 5px 10px;
-        }
-        .details-child {
-            background-color: #f9f9f9;
-            padding: 10px;
-        }
-        td {
-            text-align: center; /* Centra el contenido de la celda */
-        }
-        .filtros button {
-            padding: 5px 10px;
-            background-color: #497e76;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-left: 10px; /* Spacing between dropdown and button */
-        }
-    </style>
-</head>
-<body>
-    <h1>Tabla de Prestadores Médicos</h1>
+<!DOCTYPE html>  
+<html lang="es">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>Tabla de Prestadores Médicos</title>  
+    <!-- DataTables CSS -->  
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">  
+    <!-- jQuery -->  
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>  
+    <!-- DataTables JS -->  
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>  
+    <!-- PapaParse para CSV -->  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>  
+    <style>  
+        body { font-family: Arial, sans-serif; margin: 20px; }  
+        .filtros { margin-bottom: 20px; }  
+        select { padding: 5px; margin-right: 10px; width: 200px; }  
+        table {   
+            font-size: 14px;   
+            border-collapse: collapse;   
+            width: 100%;   
+        }  
+        th, td {   
+            border: 1px solid #ddd;   
+            padding: 10px;   
+            text-align: center; /* Center all columns */  
+        }  
+        th {  
+            background-color: #497e76;   
+            color: white;   
+            font-weight: bold;  
+        }  
+        .details-control {  
+            display: block; /* Ensures it takes the full width */  
+            margin: 0 auto; /* Centers the button horizontally */  
+            width: 40px; /* Adjust width as needed */  
+            text-align: center; /* Center text within the button */  
+            background-color: #497e76; /* Green */  
+            color: white;  
+            border: none;  
+            border-radius: 5px;  
+            padding: 5px 10px;  
+        }  
+        .details-child {  
+            background-color: #f9f9f9;  
+            padding: 10px;  
+        }  
+        .practices-container {  
+            column-count: 5; /* Maximum 5 columns */  
+            column-gap: 10px; /* Gap between columns */  
+            text-align: left; /* Left-align practices */  
+        }  
+        .practice-item {  
+            break-inside: avoid; /* Prevent breaks inside column */  
+            margin-bottom: 5px; /* Separate items vertically */  
+        }  
+        .filtros button {  
+            padding: 5px 10px;  
+            background-color: #497e76;  
+            color: white;  
+            border: none;  
+            border-radius: 5px;  
+            cursor: pointer;  
+            margin-left: 10px; /* Spacing between dropdown and button */  
+        }  
+    </style>  
+</head>  
+<body>  
+    <h1>Tabla de Prestadores Médicos</h1>  
     
-    <!-- Filtros -->
-    <div class="filtros">
-        <label>Seccional:</label>
-        <select id="filtro-seccional">
-            <option value="">Todas</option>
-        </select>
+    <!-- Filtros -->  
+    <div class="filtros">  
+        <label>Seccional:</label>  
+        <select id="filtro-seccional">  
+            <option value="">Todas</option>  
+        </select>  
         
-        <label>Tipo de Prestador:</label>
-        <select id="filtro-tipo">
-            <option value="">Todos</option>
-        </select>
+        <label>Tipo de Prestador:</label>  
+        <select id="filtro-tipo">  
+            <option value="">Todos</option>  
+        </select>  
         
-        <label>Especialidad:</label>
-        <select id="filtro-especialidad">
-            <option value="">Todas</option>
-        </select>
+        <label>Especialidad:</label>  
+        <select id="filtro-especialidad">  
+            <option value="">Todas</option>  
+        </select>  
         
-        <button id="toggle-view-btn" type="button">ver solo los prestadores</button> <!-- New toggle button -->
-    </div>
+        <button id="toggle-view-btn" type="button">ver solo los prestadores</button> <!-- New toggle button -->  
+    </div>  
     
-    <!-- Tabla -->
-    <table id="tabla-prestadores" class="display">
-        <thead>
-            <tr>
-                <th></th>
-                <th>Nombre</th>
-                <th>Nro Prestador</th>
-                <th>Seccional</th>
-                <th>Tipo de Prestador</th>
-                <th>Especialidad</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+    <!-- Tabla -->  
+    <table id="tabla-prestadores" class="display">  
+        <thead>  
+            <tr>  
+                <th></th>  
+                <th>Nombre</th>  
+                <th>Nro Prestador</th>  
+                <th>Seccional</th>  
+                <th>Tipo de Prestador</th>  
+                <th>Especialidad</th>  
+            </tr>  
+        </thead>  
+        <tbody></tbody>  
+    </table>  
 
-    <script>
-        // Precargar la relación Tipo de Prestador -> Especialidad
-        const tipoEspecialidad = {
-            "GuardiaActiva": ["Cardiologica", "Clinica", "General", "Ginecologica", "Obstetrica", "Odontologica", "Oftalmologica", "Otorrinolaringologia", "Pediatrica", "Por Electrocucion", "Por envenenamiento", "Por intoxicacion", "Por mordedura de animales", "Psiquiatrica", "Quemados", "Quirurgica", "Traumatologica"],
-            "GuardiaPasiva": ["Cardiologica", "Clinica", "General", "Ginecologica", "Obstetrica", "Oftalmologica", "Otorrinolaringologia", "Pediatrica", "Psiquiatrica", "Quemados", "Quirurgica", "Traumatologica"],
-            "EspecialidadesAmbulatorio": ["Adolescencia", "Alergia e Inmunologia", "Alergia e Inmunologia Infantil", "Andrologia", "Cardiologia", "Cardiologia Infantil", "Clinica Medica", "Dermatologia", "Dermatologia Infantil", "Diabetologia", "Diabetologia Infantil", "Endocrinologia", "Endocrinologia Infantil", "Estomatologia", "Fisiatria", "Flebologia y Linfologia", "Fonoaudiologia", "Gastroenterologia", "Gastroenterologia Infantil", "Genetica", "Geriatria", "Ginecologia", "Ginecologia Infanto Juvenil", "Hematologia e Inmunologia", "Hematologia e Inmunologia Infantil", "Hemoterapia", "Hemoterapia Infantil", "Hepatologia", "Infectologia", "Infectologia Infantil", "Medicina Familiar", "Micologia", "Nefrologia", "Nefrologia Infantil", "Neonatologia", "Neumonologia", "Neumonologia Infantil", "Neurocirugia", "Neurologia", "Neurologia Infantil", "Nutricion", "Nutricion Infantil", "Obstetricia", "Odontologia", "Oftalmologia", "Oftalmologia Infantil", "Oncologia", "Oncologia Infantil", "Osteoporosis y Litiasis renal", "Otorrinolaringologia", "Otorrinolaringologia Infantil", "Patologia Mamaria", "Pediatria", "Proctologia", "Psicologia", "Psiquiatria", "Psiquiatria Infantil", "Quemados", "Reumatologia", "Traumatologia y Ortopedia", "Traumatologia y Ortopedia Infantil", "Urologia", "Urologia Infantil"],
-            "Internacion": ["Internacion Cardiologica", "Internacion Neurologia", "Internacion Oftalmologica", "Internacion Otorrinolaringologica", "Internacion por Rehabilitacion", "Internacion Psiquiatrica", "Internacion Traumatologica", "Maternidad", "Pediatrica", "Piso", "Respirador", "Telemetria", "Terapia Intermedia", "UCO", "UTI", "UTINeo", "UTIP"],
-            "Cirugias": ["Artroscopica", "Cabeza y Cuello", "Cardiaca", "Cardiaca Infantil", "Endoscopica", "General", "Ginecologia", "Infantil", "Laparoscopica", "Miembro Superior y Mano", "Nariz y oido", "Neurocirugia", "Oftalmologica", "Pierna y Pie", "Plastica Reparadora", "Toracica", "Urologia", "Vascular Periferica"],
-            "Diagnostico": ["Anatomia Patologia", "Audiometria", "Camara Gamma - Medicina Nuclear - Radioisotopos", "Campo visual computarizado", "Colposcopia", "Densitometria Osea", "Drenaje Linfatico", "Eco-Doppler", "Ecografia", "Ecografia Infantil", "Eco Estres", "Electrocardiograma", "Electroencefalograma", "Electromiograma", "Endoscopia Digestiva", "Endoscopia Ginecologica", "Endoscopia Respiratoria", "Endoscopia Urologica", "Ergometria", "Espinograma", "Espirometria", "Espirometria Infantil", "Estudios mamarios", "Fonoaudiologia y Foniatria", "Hemodinamia", "Holter", "Infiltraciones", "Kinesiologia", "Kinesiologia en interancion", "Laboratorio Alergia e Inmunologia", "Laboratorio Bacteriologia y Serologia", "Laboratorio Dosaje Hormonal", "Laboratorio Estudios Metabolicos - Fosfacalcicos", "Laboratorio Estudios Nefrologicos", "Laboratorio Hematologia - Hemostasia - Trombosis", "Laboratorio Micologia", "Laboratorio Radioinmunoensayo", "Laboratorio Virologia", "Litotricia", "Mapeo Cerebral", "Monitoreo Fetal", "PET", "Polisomnografia", "Potenciales Evocados", "Presurometria", "Psicologia", "Psicologia Infantil", "Psicopedagogia", "Psicoprofilaxis del parto", "Puncion Mamaria", "Puncion Tiroide", "Quimioterapia", "Radiologia", "Radiologia Infantil", "Radioterapia", "Rehabilitacion Cardiaca", "Rehabilitacion Vestibular", "Resonador abierto", "Resonancia Magnetica Nuclear", "RPG", "Tomografia Computada", "Tomografo abierto", "Urodinamia", "Urodinamia Infantil"]
-        };
+    <script>  
+        // Precargar la relación Tipo de Prestador -> Especialidad  
+        const tipoEspecialidad = {  
+            "GuardiaActiva": ["Cardiologica", "Clinica", "General", "Ginecologica", "Obstetrica", "Odontologica", "Oftalmologica", "Otorrinolaringologia", "Pediatrica", "Por Electrocucion", "Por envenenamiento", "Por intoxicacion", "Por mordedura de animales", "Psiquiatrica", "Quemados", "Quirurgica", "Traumatologica"],  
+            "GuardiaPasiva": ["Cardiologica", "Clinica", "General", "Ginecologica", "Obstetrica", "Oftalmologica", "Otorrinolaringologia", "Pediatrica", "Psiquiatrica", "Quemados", "Quirurgica", "Traumatologica"],  
+            "EspecialidadesAmbulatorio": ["Adolescencia", "Alergia e Inmunologia", "Alergia e Inmunologia Infantil", "Andrologia", "Cardiologia", "Cardiologia Infantil", "Clinica Medica", "Dermatologia", "Dermatologia Infantil", "Diabetologia", "Diabetologia Infantil", "Endocrinologia", "Endocrinologia Infantil", "Estomatologia", "Fisiatria", "Flebologia y Linfologia", "Fonoaudiologia", "Gastroenterologia", "Gastroenterologia Infantil", "Genetica", "Geriatria", "Ginecologia", "Ginecologia Infanto Juvenil", "Hematologia e Inmunologia", "Hematologia e Inmunologia Infantil", "Hemoterapia", "Hemoterapia Infantil", "Hepatologia", "Infectologia", "Infectologia Infantil", "Medicina Familiar", "Micologia", "Nefrologia", "Nefrologia Infantil", "Neonatologia", "Neumonologia", "Neumonologia Infantil", "Neurocirugia", "Neurologia", "Neurologia Infantil", "Nutricion", "Nutricion Infantil", "Obstetricia", "Odontologia", "Oftalmologia", "Oftalmologia Infantil", "Oncologia", "Oncologia Infantil", "Osteoporosis y Litiasis renal", "Otorrinolaringologia", "Otorrinolaringologia Infantil", "Patologia Mamaria", "Pediatria", "Proctologia", "Psicologia", "Psiquiatria", "Psiquiatria Infantil", "Quemados", "Reumatologia", "Traumatologia y Ortopedia", "Traumatologia y Ortopedia Infantil", "Urologia", "Urologia Infantil"],  
+            "Internacion": ["Internacion Cardiologica", "Internacion Neurologia", "Internacion Oftalmologica", "Internacion Otorrinolaringologica", "Internacion por Rehabilitacion", "Internacion Psiquiatrica", "Internacion Traumatologica", "Maternidad", "Pediatrica", "Piso", "Respirador", "Telemetria", "Terapia Intermedia", "UCO", "UTI", "UTINeo", "UTIP"],  
+            "Cirugias": ["Artroscopica", "Cabeza y Cuello", "Cardiaca", "Cardiaca Infantil", "Endoscopica", "General", "Ginecologia", "Infantil", "Laparoscopica", "Miembro Superior y Mano", "Nariz y oido", "Neurocirugia", "Oftalmologica", "Pierna y Pie", "Plastica Reparadora", "Toracica", "Urologia", "Vascular Periferica"],  
+            "Diagnostico": ["Anatomia Patologia", "Audiometria", "Camara Gamma - Medicina Nuclear - Radioisotopos", "Campo visual computarizado", "Colposcopia", "Densitometria Osea", "Drenaje Linfatico", "Eco-Doppler", "Ecografia", "Ecografia Infantil", "Eco Estres", "Electrocardiograma", "Electroencefalograma", "Electromiograma", "Endoscopia Digestiva", "Endoscopia Ginecologica", "Endoscopia Respiratoria", "Endoscopia Urologica", "Ergometria", "Espinograma", "Espirometria", "Espirometria Infantil", "Estudios mamarios", "Fonoaudiologia y Foniatria", "Hemodinamia", "Holter", "Infiltraciones", "Kinesiologia", "Kinesiologia en interancion", "Laboratorio Alergia e Inmunologia", "Laboratorio Bacteriologia y Serologia", "Laboratorio Dosaje Hormonal", "Laboratorio Estudios Metabolicos - Fosfacalcicos", "Laboratorio Estudios Nefrologicos", "Laboratorio Hematologia - Hemostasia - Trombosis", "Laboratorio Micologia", "Laboratorio Radioinmunoensayo", "Laboratorio Virologia", "Litotricia", "Mapeo Cerebral", "Monitoreo Fetal", "PET", "Polisomnografia", "Potenciales Evocados", "Presurometria", "Psicologia", "Psicologia Infantil", "Psicopedagogia", "Psicoprofilaxis del parto", "Puncion Mamaria", "Puncion Tiroide", "Quimioterapia", "Radiologia", "Radiologia Infantil", "Radioterapia", "Rehabilitacion Cardiaca", "Rehabilitacion Vestibular", "Resonador abierto", "Resonancia Magnetica Nuclear", "RPG", "Tomografia Computada", "Tomografo abierto", "Urodinamia", "Urodinamia Infantil"]  
+        };  
 
-        // Precargar Seccionales
-        const seccionales = [
-            "BAHIA BLANCA", "BUENOS AIRES ZONA 1", "BUENOS AIRES ZONA 2", "BUENOS AIRES ZONA 3", "CAPITAL", 
-            "CATAMARCA", "CHACO", "CHUBUT", "CORDOBA", "CORRIENTES", "ENTRE RIOS", "FORMOSA", 
-            "GBA NOROESTE", "GBA NORTE", "GBA OESTE", "GBA SUR", "JUJUY", "LA PAMPA", "LA PLATA", 
-            "LA RIOJA", "MAR DEL PLATA", "MENDOZA", "MISIONES", "NEUQUEN", "RIO NEGRO", "ROSARIO", 
-            "SALTA", "SAN JUAN", "SAN LUIS", "SANTA CRUZ", "SANTA FE", "SANTIAGO DEL ESTERO", 
-            "TIERRA DEL FUEGO", "TRENQUE LAUQUEN", "TUCUMAN"
-        ];
+        // Precargar Seccionales  
+        const seccionales = [  
+            "BAHIA BLANCA", "BUENOS AIRES ZONA 1", "BUENOS AIRES ZONA 2", "BUENOS AIRES ZONA 3", "CAPITAL",   
+            "CATAMARCA", "CHACO", "CHUBUT", "CORDOBA", "CORRIENTES", "ENTRE RIOS", "FORMOSA",   
+            "GBA NOROESTE", "GBA NORTE", "GBA OESTE", "GBA SUR", "JUJUY", "LA PAMPA", "LA PLATA",   
+            "LA RIOJA", "MAR DEL PLATA", "MENDOZA", "MISIONES", "NEUQUEN", "RIO NEGRO", "ROSARIO",   
+            "SALTA", "SAN JUAN", "SAN LUIS", "SANTA CRUZ", "SANTA FE", "SANTIAGO DEL ESTERO",   
+            "TIERRA DEL FUEGO", "TRENQUE LAUQUEN", "TUCUMAN"  
+        ];  
 
-        $(document).ready(function() {
-            // Cargar opciones de Seccional
-            seccionales.forEach(sec => {
-                $('#filtro-seccional').append(`<option value="${sec}">${sec}</option>`);
-            });
+        $(document).ready(function() {  
+            // Cargar opciones de Seccional  
+            seccionales.forEach(sec => {  
+                $('#filtro-seccional').append(`<option value="${sec}">${sec}</option>`);  
+            });  
 
-            // Cargar opciones de Tipo de Prestador
-            Object.keys(tipoEspecialidad).forEach(tipo => {
-                $('#filtro-tipo').append(`<option value="${tipo}">${tipo}</option>`);
-            });
+            // Cargar opciones de Tipo de Prestador  
+            Object.keys(tipoEspecialidad).forEach(tipo => {  
+                $('#filtro-tipo').append(`<option value="${tipo}">${tipo}</option>`);  
+            });  
 
-            // Actualizar Especialidades según Tipo de Prestador seleccionado
-            $('#filtro-tipo').on('change', function() {
-                const tipo = $(this).val();
-                $('#filtro-especialidad').empty().append('<option value="">Todas</option>');
+            // Actualizar Especialidades según Tipo de Prestador seleccionado  
+            $('#filtro-tipo').on('change', function() {  
+                const tipo = $(this).val();  
+                $('#filtro-especialidad').empty().append('<option value="">Todas</option>');  
 
-                if (tipo) {
-                    tipoEspecialidad[tipo].forEach(esp => {
-                        $('#filtro-especialidad').append(`<option value="${esp}">${esp}</option>`);
-                    });
-                }
-            });
+                if (tipo) {  
+                    tipoEspecialidad[tipo].forEach(esp => {  
+                        $('#filtro-especialidad').append(`<option value="${esp}">${esp}</option>`);  
+                    });  
+                }  
+            });  
 
-            // Cargar datos desde CSV
-            Papa.parse("Data.csv", {
-                download: true,
-                header: true,
-                delimiter: ";",
-                complete: function(results) {
-                    const datosFiltrados = results.data.filter(row => row.CUIT && row.CUIT.trim() !== "");
+            // Cargar datos desde CSV  
+            Papa.parse("Data.csv", {  
+                download: true,  
+                header: true,  
+                delimiter: ";",  
+                complete: function(results) {  
+                    const datosFiltrados = results.data.filter(row => row.CUIT && row.CUIT.trim() !== "");  
 
-                    // Agrupar proveedores por CUIT en la vista clásica
-                    const providersMap = {};
-                    datosFiltrados.forEach(row => {
-                        const key = row.CUIT;
-                        if (!providersMap[key]) {
-                            providersMap[key] = {
-                                Nombre: row.Nombre,
-                                NroPrestador: row.NroPrestador,
-                                Seccional: row.Seccional,
-                                Partido: row.Partido,
-                                Localidad: row.Localidad,
-                                Domicilio: row.Domicilio,
-                                Telefono: row.Telefono,
-                                practices: [] // Array para prácticas
-                            };
-                        }
-                        providersMap[key].practices.push({
-                            tipo: row['Tipo de prestador'],
-                            especialidad: row['Especialidad']
-                        });
-                    });
+                    // Agrupar proveedores por CUIT en la vista clásica  
+                    const providersMap = {};  
+                    datosFiltrados.forEach(row => {  
+                        const key = row.CUIT;  
+                        if (!providersMap[key]) {  
+                            providersMap[key] = {  
+                                Nombre: row.Nombre,  
+                                NroPrestador: row.NroPrestador,  
+                                Seccional: row.Seccional,  
+                                Partido: row.Partido,  
+                                Localidad: row.Localidad,  
+                                Domicilio: row.Domicilio,  
+                                Telefono: row.Telefono,  
+                                practices: [] // Array para prácticas  
+                            };  
+                        }  
+                        providersMap[key].practices.push({  
+                            tipo: row['Tipo de prestador'],  
+                            especialidad: row['Especialidad']  
+                        });  
+                    });  
 
-                    // Convertir el objeto en un array para la vista compacta
-                    const providersCompact = Object.values(providersMap);
+                    // Convertir el objeto en un array para la vista compacta  
+                    const providersCompact = Object.values(providersMap);  
                     
-                    // Configurar DataTables
-                    const tabla = $('#tabla-prestadores').DataTable({
-                        data: datosFiltrados, // Inicialmente mostramos los datos completos
-                        columns: [
-                            { data: null, defaultContent: '<button class="details-control">+</button>', orderable: false },
-                            { data: 'Nombre', defaultContent: '' },
-                            { data: 'NroPrestador', defaultContent: '' },
-                            { data: 'Seccional', defaultContent: '' },
-                            { data: 'Tipo de prestador', defaultContent: '' },
-                            { data: 'Especialidad', defaultContent: '' }
-                        ],
-                        language: {
-                            url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'
-                        },
-                    });
+                    // Configurar DataTables  
+                    const tabla = $('#tabla-prestadores').DataTable({  
+                        data: datosFiltrados, // Inicialmente mostramos los datos completos  
+                        columns: [  
+                            { data: null, defaultContent: '<button class="details-control">+</button>', orderable: false },  
+                            { data: 'Nombre', defaultContent: '' },  
+                            { data: 'NroPrestador', defaultContent: '' },  
+                            { data: 'Seccional', defaultContent: '' },  
+                            { data: 'Tipo de prestador', defaultContent: '' },  
+                            { data: 'Especialidad', defaultContent: '' }  
+                        ],  
+                        language: {  
+                            url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'  
+                        },  
+                    });  
 
-                    // Variables para gestionar el modo de vista (clásico y compacto)
-                    let currentViewMode = 'classic'; // Modo inicial
+                    // Variables para gestionar el modo de vista (clásico y compacto)  
+                    let currentViewMode = 'classic'; // Modo inicial  
 
-                    // Manejar clic en el botón de detalles
-                    $('#tabla-prestadores tbody').on('click', 'button.details-control', function () {
-                        const tr = $(this).closest('tr');
-                        const row = tabla.row(tr);
+                    // Manejar clic en el botón de detalles  
+                    $('#tabla-prestadores tbody').on('click', 'button.details-control', function () {  
+                        const tr = $(this).closest('tr');  
+                        const row = tabla.row(tr);  
 
-                        if (row.child.isShown()) {
-                            // Si ya se muestra la información, ocultarla
-                            row.child.hide();
-                            tr.removeClass('shown');
-                            $(this).text('+'); // Cambia el botón a "+"
-                        } else {
-                            // Crear el contenido para la fila expandida
-                            const expandedData = currentViewMode === 'compact' ? getProviderDetails(row.data(), providersCompact) : createDetailsRow(row.data());
-                            row.child(expandedData).show();
-                            tr.addClass('shown');
-                            $(this).text('-'); // Cambia el botón a "-"
-                        }
-                    });
+                        if (row.child.isShown()) {  
+                            // Si ya se muestra la información, ocultarla  
+                            row.child.hide();  
+                            tr.removeClass('shown');  
+                            $(this).text('+'); // Cambia el botón a "+"  
+                        } else {  
+                            // Crear el contenido para la fila expandida  
+                            const expandedData = currentViewMode === 'compact' ? getProviderDetails(row.data(), providersCompact) : createDetailsRow(row.data());  
+                            row.child(expandedData).show();  
+                            tr.addClass('shown');  
+                            $(this).text('-'); // Cambia el botón a "-"  
+                        }  
+                    });  
 
-                    // Obtener detalles del proveedor para la vista compacta
-                    function getProviderDetails(detalles, providers) {
-                        const providerDetails = providers.find(p => p.Nombre === detalles.Nombre && p.NroPrestador === detalles.NroPrestador);
-                        const practices = providerDetails.practices?.map(p => `${p.tipo} - ${p.especialidad}`).join('<br>') || 'Sin prácticas';
+                    // Obtener detalles del proveedor para la vista compacta  
+                    function getProviderDetails(detalles, providers) {  
+                        const providerDetails = providers.find(p => p.Nombre === detalles.Nombre && p.NroPrestador === detalles.NroPrestador);  
+                        const practices = providerDetails.practices?.map(  
+                            p => `  
+                                <div class="practice-item">${p.tipo} - ${p.especialidad}</div>  
+                            `  
+                        ).join('') || 'Sin prácticas';  
 
-                        return `
-                            <div class="details-child">
-                                <table style="width:100%;">
-                                    <tr><th>Partido:</th><td>${providerDetails.Partido || 'N/A'}</td></tr>
-                                    <tr><th>Localidad:</th><td>${providerDetails.Localidad || 'N/A'}</td></tr>
-                                    <tr><th>Domicilio:</th><td>${providerDetails.Domicilio || 'N/A'}</td></tr>
-                                    <tr><th>Telefono:</th><td>${providerDetails.Telefono || 'N/A'}</td></tr>
-                                    <tr><th>Prácticas:</th><td>${practices}</td></tr>
-                                </table>
-                            </div>`;
-                    }
+                        return `  
+                            <div class="details-child">  
+                                <table style="width:100%;">  
+                                    <tr><th>Partido:</th><td>${providerDetails.Partido || 'N/A'}</td></tr>  
+                                    <tr><th>Localidad:</th><td>${providerDetails.Localidad || 'N/A'}</td></tr>  
+                                    <tr><th>Domicilio:</th><td>${providerDetails.Domicilio || 'N/A'}</td></tr>  
+                                    <tr><th>Telefono:</th><td>${providerDetails.Telefono || 'N/A'}</td></tr>  
+                                    <tr><th>Prácticas:</th><td><div class="practices-container">${practices}</div></td></tr>  
+                                </table>  
+                            </div>`;  
+                    }  
 
-                    // Crear el contenido de la fila expandida para la vista clásica
-                    function createDetailsRow(detalles) {
-                        return `
-                            <div class="details-child">
-                                <table style="width:100%;">
-                                    <tr><th>Partido:</th><td>${detalles.Partido || 'N/A'}</td></tr>
-                                    <tr><th>Localidad:</th><td>${detalles.Localidad || 'N/A'}</td></tr>
-                                    <tr><th>Domicilio:</th><td>${detalles.Domicilio || 'N/A'}</td></tr>
-                                    <tr><th>Telefono:</th><td>${detalles.Telefono || 'N/A'}</td></tr>
-                                </table>
-                            </div>`;
-                    }
+                    // Crear el contenido de la fila expandida para la vista clásica  
+                    function createDetailsRow(detalles) {  
+                        return `  
+                            <div class="details-child">  
+                                <table style="width:100%;">  
+                                    <tr><th>Partido:</th><td>${detalles.Partido || 'N/A'}</td></tr>  
+                                    <tr><th>Localidad:</th><td>${detalles.Localidad || 'N/A'}</td></tr>  
+                                    <tr><th>Domicilio:</th><td>${detalles.Domicilio || 'N/A'}</td></tr>  
+                                    <tr><th>Telefono:</th><td>${detalles.Telefono || 'N/A'}</td></tr>  
+                                </table>  
+                            </div>`;  
+                    }  
 
-                    // Botón para alternar entre las vistas
-                    $('#toggle-view-btn').click(function() {
-                        // Cambiar el modo de vista
-                        currentViewMode = (currentViewMode === 'classic') ? 'compact' : 'classic';
+                    // Botón para alternar entre las vistas  
+                    $('#toggle-view-btn').click(function() {  
+                        // Cambiar el modo de vista  
+                        currentViewMode = (currentViewMode === 'classic') ? 'compact' : 'classic';  
 
-                        // Si estamos en modo compacto, usar los datos agrupados
-                        if (currentViewMode === 'compact') {
-                            tabla.clear().rows.add(providersCompact).draw(); // Cargar datos compactos
-                            tabla.columns([4, 5]).visible(false); // Ocultar Tipo de Prestador y Especialidad
-                            $(this).text('ver vista completa'); // Cambiar texto del botón
-                        } else {
-                            tabla.clear().rows.add(datosFiltrados).draw(); // Volver a cargar datos clásicos
-                            tabla.columns([4, 5]).visible(true); // Mostrar Tipo de Prestador y Especialidad
-                            $(this).text('ver solo los prestadores'); // Cambiar texto del botón
-                        }
+                        // Si estamos en modo compacto, usar los datos agrupados  
+                        if (currentViewMode === 'compact') {  
+                            tabla.clear().rows.add(providersCompact).draw(); // Cargar datos compactos  
+                            tabla.columns([4, 5]).visible(false); // Ocultar Tipo de Prestador y Especialidad  
+                            $(this).text('ver vista completa'); // Cambiar texto del botón  
+                        } else {  
+                            tabla.clear().rows.add(datosFiltrados).draw(); // Volver a cargar datos clásicos  
+                            tabla.columns([4, 5]).visible(true); // Mostrar Tipo de Prestador y Especialidad  
+                            $(this).text('ver solo los prestadores'); // Cambiar texto del botón  
+                        }  
 
-                        // Cerrar todas las filas hijas abiertas
-                        tabla.rows().every(function() {
-                            const row = this;
-                            if (row.child.isShown()) {
-                                row.child.hide();
-                                $(row.node()).removeClass('shown');
-                            }
-                        });
+                        // Cerrar todas las filas hijas abiertas  
+                        tabla.rows().every(function() {  
+                            const row = this;  
+                            if (row.child.isShown()) {  
+                                row.child.hide();  
+                                $(row.node()).removeClass('shown');  
+                            }  
+                        });  
 
-                        // Redibujar para ajustar la visibilidad de las columnas
-                        tabla.columns.adjust().draw();
-                    });
+                        // Redibujar para ajustar la visibilidad de las columnas  
+                        tabla.columns.adjust().draw();  
+                    });  
 
-                    // Aplicar filtros
+                    // Aplicar filtros  
                     $('.filtros select').on('change', function() {
                         const seccional = $('#filtro-seccional').val();
                         const tipo = $('#filtro-tipo').val();
