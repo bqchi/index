@@ -47,6 +47,7 @@
                 <th>Seccional</th>
                 <th>Tipo de Prestador</th>
                 <th>Especialidad</th>
+                <th>Plan</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -94,13 +95,22 @@ $(function() {
                         Localidad: row.Localidad,
                         Domicilio: row.Domicilio,
                         Telefono: row.Telefono,
+                        Plan: new Set(),
                         practices: []
                     };
                 }
+                if (row.Plan) {
+                    providersMap[key].Plan.add(row.Plan);
+                }
                 providersMap[key].practices.push({
                     tipo: row['Tipo de prestador'],
-                    especialidad: row['Especialidad']
+                    especialidad: row['Especialidad'],
+                    plan: row.Plan
                 });
+            });
+            // Convertir el Set de Planes a una cadena
+            Object.keys(providersMap).forEach(key => {
+                providersMap[key].Plan = Array.from(providersMap[key].Plan).join(', ');
             });
             providersCompact = Object.values(providersMap);
 
@@ -112,7 +122,8 @@ $(function() {
                     {data: 'NroPrestador', defaultContent: '' },
                     {data: 'Seccional', defaultContent: '' },
                     {data: 'Tipo de prestador', defaultContent: '' },
-                    {data: 'Especialidad', defaultContent: '' }
+                    {data: 'Especialidad', defaultContent: '' },
+                    {data: 'Plan', defaultContent: ''}
                 ],
                 language: {url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'}
             });
@@ -152,10 +163,28 @@ $(function() {
                     const provider = currentViewMode === 'compact' 
                         ? providersCompact.find(p => p.Nombre === rowData.Nombre && p.NroPrestador === rowData.NroPrestador && p.Domicilio === rowData.Domicilio)
                         : rowData;
-                    let practicesHtml = (provider.practices||provider.practices===undefined) 
-                        ? (provider.practices||[]).map(p=> `<div class="practice-item">${p.tipo||rowData['Tipo de prestador']} - ${p.especialidad||rowData['Especialidad']}</div>`).join('') 
-                        : `<div class="practice-item">${rowData['Tipo de prestador']} - ${rowData['Especialidad']}</div>`;
-                    if(!practicesHtml) practicesHtml='Sin prácticas';
+                    
+                    // Construir la lista de prácticas con el plan
+                    let practicesToShow;
+                    if (currentViewMode === 'compact') {
+                        practicesToShow = provider.practices;
+                    } else {
+                        practicesToShow = [{
+                            tipo: rowData['Tipo de prestador'],
+                            especialidad: rowData['Especialidad'],
+                            plan: rowData.Plan
+                        }];
+                    }
+                    let practicesHtml = '';
+                    if (practicesToShow.length) {
+                        practicesHtml = practicesToShow.map(p => 
+                            `<div class="practice-item">${p.tipo} - ${p.especialidad} (${p.plan})</div>`
+                        ).join('');
+                        practicesHtml = `<div class="practices-container">${practicesHtml}</div>`;
+                    } else {
+                        practicesHtml = 'Sin prácticas';
+                    }
+
                     const mapId = `mapa-${(provider.CUIT||rowData.CUIT).replace(/\W/g,'')}-${(provider.Domicilio||rowData.Domicilio).replace(/\W/g,'')}`;
                     let detalleHtml = `
                     <div class="details-child">
@@ -165,7 +194,7 @@ $(function() {
                             <tr><th>Localidad:</th><td>${provider.Localidad||'N/A'}</td></tr>
                             <tr><th>Domicilio:</th><td>${provider.Domicilio||'N/A'}</td></tr>
                             <tr><th>Telefono:</th><td>${provider.Telefono||'N/A'}</td></tr>
-                            <tr><th>Prácticas:</th><td><div class="practices-container">${practicesHtml}</div></td></tr>
+                            <tr><th>Prácticas:</th><td>${practicesHtml}</td></tr>
                             <tr><th>Ubicación:</th>
                                 <td>
                                     <div id="${mapId}" class="map-container"></div>
@@ -192,5 +221,7 @@ $(function() {
     });
 });
 </script>
+</body>
+</html>
 </body>
 </html>
