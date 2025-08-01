@@ -79,6 +79,9 @@
         <label>Plan:
             <select id="filtro-plan"><option value="">Todos</option></select>
         </label>
+        <label>Especialidad:
+            <select id="filtro-especialidad"><option value="">Todas</option></select>
+        </label>
         <button id="reset-btn" type="button" class="reset-btn">Borrar Filtros</button>
     </div>
     <table id="tabla-prestadores" class="display" style="width:100%;">
@@ -109,6 +112,13 @@ $(function() {
     seccionales.forEach(sec => $('#filtro-seccional').append(`<option value="${sec}">${sec}</option>`));
     // Llenar tipos
     Object.keys(tipoEspecialidad).forEach(tipo => $('#filtro-tipo').append(`<option value="${tipo}">${tipo}</option>`));
+
+    // Llenar especialidades (todas las especialidades únicas)
+    const allSpecialties = new Set();
+    Object.values(tipoEspecialidad).forEach(specialties => {
+        specialties.forEach(specialty => allSpecialties.add(specialty));
+    });
+    allSpecialties.forEach(specialty => $('#filtro-especialidad').append(`<option value="${specialty}">${specialty}</option>`));
 
     let providersCompact = [], datosFiltrados = [], tabla;
 
@@ -177,7 +187,7 @@ $(function() {
 
             // Botón reset
             $('#reset-btn').click(function() {
-                $('#filtro-seccional, #filtro-tipo, #filtro-plan').val('');
+                $('#filtro-seccional, #filtro-tipo, #filtro-plan, #filtro-especialidad').val('');
                 filterTable();
             });
 
@@ -256,6 +266,7 @@ $(function() {
                 const seccional = $('#filtro-seccional').val();
                 const tipo = $('#filtro-tipo').val();
                 const plan = $('#filtro-plan').val();
+                const especialidad = $('#filtro-especialidad').val();
 
                 // Filtramos los proveedores compactos
                 const filteredData = providersCompact.filter(provider => {
@@ -271,6 +282,13 @@ $(function() {
                     if (tipo) {
                         const hasPracticeType = provider.practices.some(p => p.tipo === tipo);
                         if (!hasPracticeType) {
+                            return false;
+                        }
+                    }
+                    // Especialidad: si se seleccionó una especialidad, debemos verificar que el proveedor tenga al menos una práctica con esa especialidad
+                    if (especialidad) {
+                        const hasSpecialty = provider.practices.some(p => p.especialidad === especialidad);
+                        if (!hasSpecialty) {
                             return false;
                         }
                     }
