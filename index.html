@@ -40,6 +40,12 @@
             padding: 4px 8px !important;   
             height: 28px !important;  
         }  
+        /* Eliminar iconos de ordenamiento */  
+        .dataTable thead .sorting,   
+        .dataTable thead .sorting_asc,   
+        .dataTable thead .sorting_desc {  
+            background-image: none !important;  
+        }  
         .details-child { background: #f9f9f9; padding: 18px; }  
         .practices-container {   
             display: flex;   
@@ -215,6 +221,7 @@ $(function() {
                 ],  
                 language: {url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'},  
                 pageLength: 25,  
+                ordering: false, // Deshabilitar ordenamiento por columnas  
                 createdRow: function(row, data) {  
                     if (data.Plan.includes('Universal')) {  
                         $(row).addClass('universal');  
@@ -223,7 +230,7 @@ $(function() {
                     }  
                 },  
                 drawCallback: function() {  
-                    // Mantener los colores al ordenar  
+                    // Mantener los colores al redibujar  
                     $('tr.universal td:first-child').css('background-color', '#e6f7e6');  
                     $('tr.superador td:first-child').css('background-color', '#f0e6ff');  
                 }  
@@ -261,21 +268,20 @@ $(function() {
                         practicesByType[practice.tipo].push(practice.especialidad);  
                     });  
 
-                    // Construir HTML para prácticas agrupadas
-                    let practicesHtml = '<div class="practices-container">';
-                    Object.keys(practicesByType).forEach(tipo => {
-                        practicesHtml += `
-                        <div class="practice-type-container">
-                            <div class="practice-type-title">${tipo}</div>
-                            <ul class="practice-list">`;
-                        practicesByType[tipo].forEach(especialidad => {
-                            practicesHtml += `<li>${especialidad}</li>`;
-                        });
-                        practicesHtml += `
-                            </ul>
-                        </div>`;
-                    });
-                    practicesHtml += '</div>';
+                    let practicesHtml = '<div class="practices-container">';  
+                    Object.keys(practicesByType).forEach(tipo => {  
+                        practicesHtml += `  
+                        <div class="practice-type-container">  
+                            <div class="practice-type-title">${tipo}</div>  
+                            <ul class="practice-list">`;  
+                        practicesByType[tipo].forEach(especialidad => {  
+                            practicesHtml += `<li>${especialidad}</li>`;  
+                        });  
+                        practicesHtml += `  
+                            </ul>  
+                        </div>`;  
+                    });  
+                    practicesHtml += '</div>';  
 
                     const mapId = `mapa-${(rowData.CUIT).replace(/\W/g,'')}-${(rowData.Domicilio).replace(/\W/g,'')}`;
                     let detalleHtml = `
