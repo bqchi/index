@@ -76,11 +76,11 @@
         <label>Tipo de Prestador:
             <select id="filtro-tipo"><option value="">Todos</option></select>
         </label>
-        <label>Plan:
-            <select id="filtro-plan"><option value="">Todos</option></select>
-        </label>
         <label>Especialidad:
             <select id="filtro-especialidad"><option value="">Todas</option></select>
+        </label>
+        <label>Plan:
+            <select id="filtro-plan"><option value="">Todos</option></select>
         </label>
         <button id="reset-btn" type="button" class="reset-btn">Borrar Filtros</button>
     </div>
@@ -113,14 +113,26 @@ $(function() {
     // Llenar tipos
     Object.keys(tipoEspecialidad).forEach(tipo => $('#filtro-tipo').append(`<option value="${tipo}">${tipo}</option>`));
 
-    // Llenar especialidades (todas las especialidades únicas)
-    const allSpecialties = new Set();
-    Object.values(tipoEspecialidad).forEach(specialties => {
-        specialties.forEach(specialty => allSpecialties.add(specialty));
-    });
-    allSpecialties.forEach(specialty => $('#filtro-especialidad').append(`<option value="${specialty}">${specialty}</option>`));
-
     let providersCompact = [], datosFiltrados = [], tabla;
+
+    // Función para actualizar las especialidades según el tipo de prestador seleccionado
+    function updateEspecialidades() {
+        const tipoSeleccionado = $('#filtro-tipo').val();
+        const $filtroEspecialidad = $('#filtro-especialidad');
+        $filtroEspecialidad.empty().append('<option value="">Todas</option>');
+
+        if (tipoSeleccionado) {
+            tipoEspecialidad[tipoSeleccionado].forEach(especialidad => {
+                $filtroEspecialidad.append(`<option value="${especialidad}">${especialidad}</option>`);
+            });
+        }
+    }
+
+    // Evento para actualizar las especialidades cuando cambia el tipo de prestador
+    $('#filtro-tipo').on('change', function() {
+        updateEspecialidades();
+        filterTable();
+    });
 
     Papa.parse("Data.csv", {
         download: true,
@@ -187,7 +199,8 @@ $(function() {
 
             // Botón reset
             $('#reset-btn').click(function() {
-                $('#filtro-seccional, #filtro-tipo, #filtro-plan, #filtro-especialidad').val('');
+                $('#filtro-seccional, #filtro-tipo, #filtro-especialidad, #filtro-plan').val('');
+                updateEspecialidades(); // Resetear también las especialidades
                 filterTable();
             });
 
@@ -265,17 +278,13 @@ $(function() {
             function filterTable() {
                 const seccional = $('#filtro-seccional').val();
                 const tipo = $('#filtro-tipo').val();
-                const plan = $('#filtro-plan').val();
                 const especialidad = $('#filtro-especialidad').val();
+                const plan = $('#filtro-plan').val();
 
                 // Filtramos los proveedores compactos
                 const filteredData = providersCompact.filter(provider => {
                     // Seccional
                     if (seccional && provider.Seccional !== seccional) {
-                        return false;
-                    }
-                    // Plan: si el proveedor tiene varios planes, verificar si el plan filtrado está incluido
-                    if (plan && !provider.Plan.includes(plan)) {
                         return false;
                     }
                     // Tipo: si se seleccionó un tipo, debemos verificar que el proveedor tenga al menos una práctica de ese tipo
@@ -291,6 +300,10 @@ $(function() {
                         if (!hasSpecialty) {
                             return false;
                         }
+                    }
+                    // Plan: si el proveedor tiene varios planes, verificar si el plan filtrado está incluido
+                    if (plan && !provider.Plan.includes(plan)) {
+                        return false;
                     }
                     return true;
                 });
