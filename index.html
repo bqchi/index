@@ -1,261 +1,267 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Directorio de Prestadores Médicos</title>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; margin:20px; background:#f5f5f5;}
-        h1 { color: #497e76; }
-        .filtros { 
-            margin-bottom: 20px; 
-            display: flex; 
-            gap: 20px; 
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        select, button { 
-            padding: 8px; 
-            border-radius:4px; 
-            border:1px solid #bbb; 
-        }
-        .filtros button { 
-            background:#497e76; 
-            color:white; 
-            border:none; 
-            min-width:160px;
-        }
-        .filtros .reset-btn { 
-            background: #8c4a4a; 
-        }
-        table { font-size: 14px; }
-        th, td { 
-            text-align: center; 
-            padding: 4px 8px !important; 
-            height: 28px !important;
-        }
-        .details-child { background: #f9f9f9; padding: 18px; }
-        .practices-container { 
-            display: flex; 
-            flex-wrap: wrap; 
-            gap: 15px; 
-        }
-        .practice-type-container { 
-            flex: 1 0 300px; 
-            background: #e8f4f8; /* Azul pastel en lugar de verde */
-            padding: 10px; 
-            border-radius: 6px; 
-        }
-        .practice-type-title { 
-            font-weight: bold; 
-            margin-bottom: 8px; 
-            text-align: center;
-            color: #497e76;
-        }
-        .practice-list { 
-            padding-left: 20px; 
-            text-align: left; 
-        }
-        .map-container { 
-            height: 220px; 
-            width: 99%; 
-            margin-top:10px; 
-            border-radius:6px; 
-            border:1px solid #497e76;
-        }
-        /* Colores para los planes */
-        tr.universal { background-color: #e6f7e6 !important; }
-        tr.superador { background-color: #f0e6ff !important; }
-        tr.universal td:first-child { background-color: #e6f7e6 !important; }
-        tr.superador td:first-child { background-color: #f0e6ff !important; }
-    </style>
-</head>
-<body>
-    <h1>Tabla de Prestadores Médicos</h1>
-    <div class="filtros">
-        <label>Seccional:
-            <select id="filtro-seccional"><option value="">Todas</option></select>
-        </label>
-        <label>Tipo de Prestador:
-            <select id="filtro-tipo"><option value="">Todos</option></select>
-        </label>
-        <label>Especialidad:
-            <select id="filtro-especialidad"><option value="">Todas</option></select>
-        </label>
-        <label>Plan:
-            <select id="filtro-plan"><option value="">Todos</option></select>
-        </label>
-        <button id="reset-btn" type="button" class="reset-btn">Borrar Filtros</button>
-    </div>
-    <table id="tabla-prestadores" class="display" style="width:100%;">
-        <thead>
-            <tr>
-                <th></th>
-                <th>Nombre</th>
-                <th>Nro Prestador</th>
-                <th>Seccional</th>
-                <th>Plan</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-<script>
-const tipoEspecialidad = {
-    "GuardiaActiva": ["Cardiologica","Clinica","General","Ginecologica","Obstetrica","Odontologica","Oftalmologica","Otorrinolaringologia","Pediatrica","Por Electrocucion","Por envenenamiento","Por intoxicacion","Por mordedura de animales","Psiquiatrica","Quemados","Quirurgica","Traumatologica"],
-    "GuardiaPasiva": ["Cardiologica","Clinica","General","Ginecologica","Obstetrica","Oftalmologica","Otorrinolaringologia","Pediatrica","Psiquiatrica","Quemados","Quirurgica","Traumatologica"],
-    "EspecialidadesAmbulatorio": ["Adolescencia","Alergia e Inmunologia","Alergia e Inmunologia Infantil","Andrologia","Cardiologia","Cardiologia Infantil","Clinica Medica","Dermatologia","Dermatologia Infantil","Diabetologia","Diabetologia Infantil","Endocrinologia","Endocrinologia Infantil","Estomatologia","Fisiatria","Flebologia y Linfologia","Fonoaudiologia","Gastroenterologia","Gastroenterologia Infantil","Genetica","Geriatria","Ginecologia","Ginecologia Infanto Juvenil","Hematologia e Inmunologia","Hematologia e Inmunologia Infantil","Hemoterapia","Hemoterapia Infantil","Hepatologia","Infectologia","Infectologia Infantil","Medicina Familiar","Micologia","Nefrologia","Nefrologia Infantil","Neonatologia","Neumonologia","Neumonologia Infantil","Neurocirugia","Neurologia","Neurologia Infantil","Nutricion","Nutricion Infantil","Obstetricia","Odontologia","Oftalmologia","Oftalmologia Infantil","Oncologia","Oncologia Infantil","Osteoporosis y Litiasis renal","Otorrinolaringologia","Otorrinolaringologia Infantil","Patologia Mamaria","Pediatria","Proctologia","Psicologia","Psiquiatria","Psiquiatria Infantil","Quemados","Reumatologia","Traumatologia y Ortopedia","Traumatologia y Ortopedia Infantil","Urologia","Urologia Infantil"],
-    "Internacion": ["Internacion Cardiologica","Internacion Neurologia","Internacion Oftalmologica","Internacion Otorrinolaringologica","Internacion por Rehabilitacion","Internacion Psiquiatrica","Internacion Traumatologica","Maternidad","Pediatrica","Piso","Respirador","Telemetria","Terapia Intermedia","UCO","UTI","UTINeo","UTIP"],
-    "Cirugias": ["Artroscopica","Cabeza y Cuello","Cardiaca","Cardiaca Infantil","Endoscopica","General","Ginecologia","Infantil","Laparoscopica","Miembro Superior y Mano","Nariz y oido","Neurocirugia","Oftalmologica","Pierna y Pie","Plastica Reparadora","Toracica","Urologia","Vascular Periferica"],
-    "Diagnostico": ["Anatomia Patologia","Audiometria","Camara Gamma - Medicina Nuclear - Radioisotopos","Campo visual computarizado","Colposcopia","Densitometria Osea","Drenaje Linfatico","Eco-Doppler","Ecografia","Ecografia Infantil","Eco Estres","Electrocardiograma","Electroencefalograma","Electromiograma","Endoscopia Digestiva","Endoscopia Ginecologica","Endoscopia Respiratoria","Endoscopia Urologica","Ergometria","Espinograma","Espirometria","Espirometria Infantil","Estudios mamarios","Fonoaudiologia y Foniatria","Hemodinamia","Holter","Infiltraciones","Kinesiologia","Kinesiologia en interancion","Laboratorio Alergia e Inmunologia","Laboratorio Bacteriologia y Serologia","Laboratorio Dosaje Hormonal","Laboratorio Estudios Metabolicos - Fosfacalcicos","Laboratorio Estudios Nefrologicos","Laboratorio Hematologia - Hemostasia - Trombosis","Laboratorio Micologia","Laboratorio Radioinmunoensayo","Laboratorio Virologia","Litotricia","Mapeo Cerebral","Monitoreo Fetal","PET","Polisomnografia","Potenciales Evocados","Presurometria","Psicologia","Psicologia Infantil","Psicopedagogia","Psicoprofilaxis del parto","Puncion Mamaria","Puncion Tiroide","Quimioterapia","Radiologia","Radiologia Infantil","Radioterapia","Rehabilitacion Cardiaca","Rehabilitacion Vestibular","Resonador abierto","Resonancia Magnetica Nuclear","RPG","Tomografia Computada","Tomografo abierto","Urodinamia","Urodinamia Infantil"]
-};
-const seccionales = ["BAHIA BLANCA","BUENOS AIRES ZONA 1","BUENOS AIRES ZONA 2","BUENOS AIRES ZONA 3","CAPITAL","CATAMARCA","CHACO","CHUBUT","CORDOBA","CORRIENTES","ENTRE RIOS","FORMOSA","GBA NOROESTE","GBA NORTE","GBA OESTE","GBA SUR","JUJUY","LA PAMPA","LA PLATA","LA RIOJA","MAR DEL PLATA","MENDOZA","MISIONES","NEUQUEN","RIO NEGRO","ROSARIO","SALTA","SAN JUAN","SAN LUIS","SANTA CRUZ","SANTA FE","SANTIAGO DEL ESTERO","TIERRA DEL FUEGO","TRENQUE LAUQUEN","TUCUMAN"];
+<!DOCTYPE html>  
+<html lang="es">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>Directorio de Prestadores Médicos</title>  
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">  
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>  
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>  
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>  
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>  
+    <style>  
+        body { font-family: Arial, sans-serif; margin:20px; background:#f5f5f5;}  
+        h1 { color: #497e76; }  
+        .filtros {   
+            margin-bottom: 20px;   
+            display: flex;   
+            gap: 20px;   
+            flex-wrap: wrap;  
+            align-items: center;  
+        }  
+        select, button {   
+            padding: 8px;   
+            border-radius:4px;   
+            border:1px solid #bbb;   
+        }  
+        .filtros button {   
+            background:#497e76;   
+            color:white;   
+            border:none;   
+            min-width:160px;  
+        }  
+        .filtros .reset-btn {   
+            background: #8c4a4a;   
+        }  
+        table { font-size: 14px; }  
+        th, td {   
+            text-align: center;   
+            padding: 4px 8px !important;   
+            height: 28px !important;  
+        }  
+        .details-child { background: #f9f9f9; padding: 18px; }  
+        .practices-container {   
+            display: flex;   
+            flex-wrap: wrap;   
+            gap: 15px;   
+        }  
+        .practice-type-container {   
+            flex: 1 0 300px;   
+            background: #e8f4f8;  
+            padding: 10px;   
+            border-radius: 6px;   
+        }  
+        .practice-type-title {   
+            font-weight: bold;   
+            margin-bottom: 8px;   
+            text-align: center;  
+            color: #497e76;  
+        }  
+        .practice-list {   
+            padding-left: 20px;   
+            text-align: left;   
+        }  
+        .map-container {   
+            height: 220px;   
+            width: 99%;   
+            margin-top:10px;   
+            border-radius:6px;   
+            border:1px solid #497e76;  
+        }  
+        /* Colores para los planes */  
+        tr.universal { background-color: #e6f7e6 !important; }  
+        tr.superador { background-color: #f0e6ff !important; }  
+        tr.universal td:first-child { background-color: #e6f7e6 !important; }  
+        tr.superador td:first-child { background-color: #f0e6ff !important; }  
+    </style>  
+</head>  
+<body>  
+    <h1>Tabla de Prestadores Médicos</h1>  
+    <div class="filtros">  
+        <label>Seccional:  
+            <select id="filtro-seccional"><option value="">Todas</option></select>  
+        </label>  
+        <label>Tipo de Prestador:  
+            <select id="filtro-tipo"><option value="">Todos</option></select>  
+        </label>  
+        <label>Especialidad:  
+            <select id="filtro-especialidad"><option value="">Todas</option></select>  
+        </label>  
+        <label>Plan:  
+            <select id="filtro-plan"><option value="">Todos</option></select>  
+        </label>  
+        <button id="reset-btn" type="button" class="reset-btn">Borrar Filtros</button>  
+    </div>  
+    <table id="tabla-prestadores" class="display" style="width:100%;">  
+        <thead>  
+            <tr>  
+                <th></th>  
+                <th>Nombre</th>  
+                <th>Nro Prestador</th>  
+                <th>Seccional</th>  
+                <th>Plan</th>  
+            </tr>  
+        </thead>  
+        <tbody></tbody>  
+    </table>  
+<script>  
+const tipoEspecialidad = {  
+    "GuardiaActiva": ["Cardiologica","Clinica","General","Ginecologica","Obstetrica","Odontologica","Oftalmologica","Otorrinolaringologia","Pediatrica","Por Electrocucion","Por envenenamiento","Por intoxicacion","Por mordedura de animales","Psiquiatrica","Quemados","Quirurgica","Traumatologica"],  
+    "GuardiaPasiva": ["Cardiologica","Clinica","General","Ginecologica","Obstetrica","Oftalmologica","Otorrinolaringologia","Pediatrica","Psiquiatrica","Quemados","Quirurgica","Traumatologica"],  
+    "EspecialidadesAmbulatorio": ["Adolescencia","Alergia e Inmunologia","Alergia e Inmunologia Infantil","Andrologia","Cardiologia","Cardiologia Infantil","Clinica Medica","Dermatologia","Dermatologia Infantil","Diabetologia","Diabetologia Infantil","Endocrinologia","Endocrinologia Infantil","Estomatologia","Fisiatria","Flebologia y Linfologia","Fonoaudiologia","Gastroenterologia","Gastroenterologia Infantil","Genetica","Geriatria","Ginecologia","Ginecologia Infanto Juvenil","Hematologia e Inmunologia","Hematologia e Inmunologia Infantil","Hemoterapia","Hemoterapia Infantil","Hepatologia","Infectologia","Infectologia Infantil","Medicina Familiar","Micologia","Nefrologia","Nefrologia Infantil","Neonatologia","Neumonologia","Neumonologia Infantil","Neurocirugia","Neurologia","Neurologia Infantil","Nutricion","Nutricion Infantil","Obstetricia","Odontologia","Oftalmologia","Oftalmologia Infantil","Oncologia","Oncologia Infantil","Osteoporosis y Litiasis renal","Otorrinolaringologia","Otorrinolaringologia Infantil","Patologia Mamaria","Pediatria","Proctologia","Psicologia","Psiquiatria","Psiquiatria Infantil","Quemados","Reumatologia","Traumatologia y Ortopedia","Traumatologia y Ortopedia Infantil","Urologia","Urologia Infantil"],  
+    "Internacion": ["Internacion Cardiologica","Internacion Neurologia","Internacion Oftalmologica","Internacion Otorrinolaringologica","Internacion por Rehabilitacion","Internacion Psiquiatrica","Internacion Traumatologica","Maternidad","Pediatrica","Piso","Respirador","Telemetria","Terapia Intermedia","UCO","UTI","UTINeo","UTIP"],  
+    "Cirugias": ["Artroscopica","Cabeza y Cuello","Cardiaca","Cardiaca Infantil","Endoscopica","General","Ginecologia","Infantil","Laparoscopica","Miembro Superior y Mano","Nariz y oido","Neurocirugia","Oftalmologica","Pierna y Pie","Plastica Reparadora","Toracica","Urologia","Vascular Periferica"],  
+    "Diagnostico": ["Anatomia Patologia","Audiometria","Camara Gamma - Medicina Nuclear - Radioisotopos","Campo visual computarizado","Colposcopia","Densitometria Osea","Drenaje Linfatico","Eco-Doppler","Ecografia","Ecografia Infantil","Eco Estres","Electrocardiograma","Electroencefalograma","Electromiograma","Endoscopia Digestiva","Endoscopia Ginecologica","Endoscopia Respiratoria","Endoscopia Urologica","Ergometria","Espinograma","Espirometria","Espirometria Infantil","Estudios mamarios","Fonoaudiologia y Foniatria","Hemodinamia","Holter","Infiltraciones","Kinesiologia","Kinesiologia en interancion","Laboratorio Alergia e Inmunologia","Laboratorio Bacteriologia y Serologia","Laboratorio Dosaje Hormonal","Laboratorio Estudios Metabolicos - Fosfacalcicos","Laboratorio Estudios Nefrologicos","Laboratorio Hematologia - Hemostasia - Trombosis","Laboratorio Micologia","Laboratorio Radioinmunoensayo","Laboratorio Virologia","Litotricia","Mapeo Cerebral","Monitoreo Fetal","PET","Polisomnografia","Potenciales Evocados","Presurometria","Psicologia","Psicologia Infantil","Psicopedagogia","Psicoprofilaxis del parto","Puncion Mamaria","Puncion Tiroide","Quimioterapia","Radiologia","Radiologia Infantil","Radioterapia","Rehabilitacion Cardiaca","Rehabilitacion Vestibular","Resonador abierto","Resonancia Magnetica Nuclear","RPG","Tomografia Computada","Tomografo abierto","Urodinamia","Urodinamia Infantil"]  
+};  
+const seccionales = ["BAHIA BLANCA","BUENOS AIRES ZONA 1","BUENOS AIRES ZONA 2","BUENOS AIRES ZONA 3","CAPITAL","CATAMARCA","CHACO","CHUBUT","CORDOBA","CORRIENTES","ENTRE RIOS","FORMOSA","GBA NOROESTE","GBA NORTE","GBA OESTE","GBA SUR","JUJUY","LA PAMPA","LA PLATA","LA RIOJA","MAR DEL PLATA","MENDOZA","MISIONES","NEUQUEN","RIO NEGRO","ROSARIO","SALTA","SAN JUAN","SAN LUIS","SANTA CRUZ","SANTA FE","SANTIAGO DEL ESTERO","TIERRA DEL FUEGO","TRENQUE LAUQUEN","TUCUMAN"];  
 
-$(function() {
-    // Llenar seccionales
-    seccionales.forEach(sec => $('#filtro-seccional').append(`<option value="${sec}">${sec}</option>`));
-    // Llenar tipos
-    Object.keys(tipoEspecialidad).forEach(tipo => $('#filtro-tipo').append(`<option value="${tipo}">${tipo}</option>`));
+$(function() {  
+    // Llenar seccionales  
+    seccionales.forEach(sec => $('#filtro-seccional').append(`<option value="${sec}">${sec}</option>`));  
+    // Llenar tipos  
+    Object.keys(tipoEspecialidad).forEach(tipo => $('#filtro-tipo').append(`<option value="${tipo}">${tipo}</option>`));  
 
-    let providersCompact = [], datosFiltrados = [], tabla;
+    let providersCompact = [], datosFiltrados = [], tabla;  
 
-    // Función para actualizar las especialidades según el tipo de prestador seleccionado
-    function updateEspecialidades() {
-        const tipoSeleccionado = $('#filtro-tipo').val();
-        const $filtroEspecialidad = $('#filtro-especialidad');
-        $filtroEspecialidad.empty().append('<option value="">Todas</option>');
+    // Función para actualizar las especialidades según el tipo de prestador seleccionado  
+    function updateEspecialidades() {  
+        const tipoSeleccionado = $('#filtro-tipo').val();  
+        const $filtroEspecialidad = $('#filtro-especialidad');  
+        $filtroEspecialidad.empty().append('<option value="">Todas</option>');  
 
-        if (tipoSeleccionado) {
-            tipoEspecialidad[tipoSeleccionado].forEach(especialidad => {
-                $filtroEspecialidad.append(`<option value="${especialidad}">${especialidad}</option>`);
-            });
-        }
-    }
+        if (tipoSeleccionado) {  
+            tipoEspecialidad[tipoSeleccionado].forEach(especialidad => {  
+                $filtroEspecialidad.append(`<option value="${especialidad}">${especialidad}</option>`);  
+            });  
+        }  
+    }  
 
-    // Evento para actualizar las especialidades cuando cambia el tipo de prestador
-    $('#filtro-tipo').on('change', function() {
-        updateEspecialidades();
-        filterTable();
-    });
+    // Evento para actualizar las especialidades cuando cambia el tipo de prestador  
+    $('#filtro-tipo').on('change', function() {  
+        updateEspecialidades();  
+        filterTable();  
+    });  
 
-    Papa.parse("Data.csv", {
-        download: true,
-        header: true,
-        delimiter: ";",
-        complete: function(results) {
-            datosFiltrados = results.data.filter(row => row.CUIT && row.CUIT.trim() !== "");
-            const providersMap = {};
-            const uniquePlans = new Set();
+    Papa.parse("Data.csv", {  
+        download: true,  
+        header: true,  
+        delimiter: ";",  
+        complete: function(results) {  
+            datosFiltrados = results.data.filter(row => row.CUIT && row.CUIT.trim() !== "");  
+            const providersMap = {};  
+            const uniquePlans = new Set();  
 
-            datosFiltrados.forEach(row => {
-                const key = `${row.CUIT}-${row.Domicilio}`;
-                if (!providersMap[key]) {
-                    providersMap[key] = {
-                        CUIT: row.CUIT,
-                        Nombre: row.Nombre,
-                        NroPrestador: row.NroPrestador,
-                        Seccional: row.Seccional,
-                        Provincia: row.Provincia,
-                        Partido: row.Partido,
-                        Localidad: row.Localidad,
-                        Domicilio: row.Domicilio,
-                        Telefono: row.Telefono,
-                        Plan: new Set(),
-                        practices: []
-                    };
-                }
-                if (row.Plan) {
-                    providersMap[key].Plan.add(row.Plan);
-                    uniquePlans.add(row.Plan);
-                }
-                providersMap[key].practices.push({
-                    tipo: row['Tipo de prestador'],
-                    especialidad: row['Especialidad']
-                });
-            });
+            datosFiltrados.forEach(row => {  
+                const key = `${row.CUIT}-${row.Domicilio}`;  
+                if (!providersMap[key]) {  
+                    providersMap[key] = {  
+                        CUIT: row.CUIT,  
+                        Nombre: row.Nombre,  
+                        NroPrestador: row.NroPrestador,  
+                        Seccional: row.Seccional,  
+                        Provincia: row.Provincia,  
+                        Partido: row.Partido,  
+                        Localidad: row.Localidad,  
+                        Domicilio: row.Domicilio,  
+                        Telefono: row.Telefono,  
+                        Plan: new Set(),  
+                        practices: []  
+                    };  
+                }  
+                if (row.Plan) {  
+                    providersMap[key].Plan.add(row.Plan);  
+                    uniquePlans.add(row.Plan);  
+                }  
+                providersMap[key].practices.push({  
+                    tipo: row['Tipo de prestador'],  
+                    especialidad: row['Especialidad']  
+                });  
+            });  
 
-            // Convertir el Set de Planes a una cadena para el proveedor
-            Object.keys(providersMap).forEach(key => {
-                const planStr = Array.from(providersMap[key].Plan).join(', ');
-                providersMap[key].Plan = planStr;
-            });
-            providersCompact = Object.values(providersMap);
+            // Convertir el Set de Planes a una cadena para el proveedor  
+            Object.keys(providersMap).forEach(key => {  
+                const planStr = Array.from(providersMap[key].Plan).join(', ');  
+                providersMap[key].Plan = planStr;  
+            });  
+            providersCompact = Object.values(providersMap);  
 
-            // Ordenar: Universal primero, Superador después, y luego alfabéticamente por Nombre
-            providersCompact.sort((a, b) => {
-                const aIsUniversal = a.Plan.includes('Universal');
-                const bIsUniversal = b.Plan.includes('Universal');
-                const aIsSuperador = a.Plan.includes('Superador');
-                const bIsSuperador = b.Plan.includes('Superador');
+            // Ordenar: Universal primero, Superador después, y luego alfabéticamente por Nombre  
+            providersCompact.sort((a, b) => {  
+                const aIsUniversal = a.Plan.includes('Universal');  
+                const bIsUniversal = b.Plan.includes('Universal');  
+                const aIsSuperador = a.Plan.includes('Superador');  
+                const bIsSuperador = b.Plan.includes('Superador');  
 
-                if (aIsUniversal && !bIsUniversal) return -1;
-                if (!aIsUniversal && bIsUniversal) return 1;
-                if (aIsSuperador && !bIsSuperador) return 1;
-                if (!aIsSuperador && bIsSuperador) return -1;
-                return a.Nombre.localeCompare(b.Nombre);
-            });
+                if (aIsUniversal && !bIsUniversal) return -1;  
+                if (!aIsUniversal && bIsUniversal) return 1;  
+                if (aIsSuperador && !bIsSuperador) return 1;  
+                if (!aIsSuperador && bIsSuperador) return -1;  
+                return a.Nombre.localeCompare(b.Nombre);  
+            });  
 
-            // Llenar opciones de planes
-            uniquePlans.forEach(plan => $('#filtro-plan').append(`<option value="${plan}">${plan}</option>`));
+            // Llenar opciones de planes  
+            uniquePlans.forEach(plan => $('#filtro-plan').append(`<option value="${plan}">${plan}</option>`));  
 
-            // Inicializar tabla con proveedores compactos
-            tabla = $('#tabla-prestadores').DataTable({
-                data: providersCompact,
-                columns: [
-                    {data: null, defaultContent: '<button class="details-control">+</button>', orderable: false },
-                    {data: 'Nombre', defaultContent: '' },
-                    {data: 'NroPrestador', defaultContent: '' },
-                    {data: 'Seccional', defaultContent: '' },
-                    {data: 'Plan', defaultContent: '' }
-                ],
-                language: {url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'},
-                pageLength: 25,
-                createdRow: function(row, data) {
-                    if (data.Plan.includes('Universal')) {
-                        $(row).addClass('universal');
-                    } else if (data.Plan.includes('Superador')) {
-                        $(row).addClass('superador');
-                    }
-                }
-            });
+            // Inicializar tabla con proveedores compactos  
+            tabla = $('#tabla-prestadores').DataTable({  
+                data: providersCompact,  
+                columns: [  
+                    {data: null, defaultContent: '<button class="details-control">+</button>', orderable: false },  
+                    {data: 'Nombre', defaultContent: '' },  
+                    {data: 'NroPrestador', defaultContent: '' },  
+                    {data: 'Seccional', defaultContent: '' },  
+                    {data: 'Plan', defaultContent: '' }  
+                ],  
+                language: {url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'},  
+                pageLength: 25,  
+                createdRow: function(row, data) {  
+                    if (data.Plan.includes('Universal')) {  
+                        $(row).addClass('universal');  
+                    } else if (data.Plan.includes('Superador')) {  
+                        $(row).addClass('superador');  
+                    }  
+                },  
+                drawCallback: function() {  
+                    // Mantener los colores al ordenar  
+                    $('tr.universal td:first-child').css('background-color', '#e6f7e6');  
+                    $('tr.superador td:first-child').css('background-color', '#f0e6ff');  
+                }  
+            });  
 
-            // Filtros
-            $('.filtros select').on('change', function() {
-                filterTable();
-            });
+            // Filtros  
+            $('.filtros select').on('change', function() {  
+                filterTable();  
+            });  
 
-            // Botón reset
-            $('#reset-btn').click(function() {
-                $('#filtro-seccional, #filtro-tipo, #filtro-especialidad, #filtro-plan').val('');
-                updateEspecialidades();
-                filterTable();
-            });
+            // Botón reset  
+            $('#reset-btn').click(function() {  
+                $('#filtro-seccional, #filtro-tipo, #filtro-especialidad, #filtro-plan').val('');  
+                updateEspecialidades();  
+                filterTable();  
+            });  
 
-            // Mostrar/ocultar detalles
-            $('#tabla-prestadores tbody').on('click', 'button.details-control', async function () {
-                const tr = $(this).closest('tr');
-                const row = tabla.row(tr);
-                const rowData = row.data();
+            // Mostrar/ocultar detalles  
+            $('#tabla-prestadores tbody').on('click', 'button.details-control', async function () {  
+                const tr = $(this).closest('tr');  
+                const row = tabla.row(tr);  
+                const rowData = row.data();  
 
-                if (row.child.isShown()) {
-                    row.child.hide();
-                    tr.removeClass('shown');
-                    $(this).text('+');
-                } else {
-                    $(this).text('-');
-                    const practicesByType = {};
-                    rowData.practices.forEach(practice => {
-                        if (!practicesByType[practice.tipo]) {
-                            practicesByType[practice.tipo] = [];
-                        }
-                        practicesByType[practice.tipo].push(practice.especialidad);
-                    });
+                if (row.child.isShown()) {  
+                    row.child.hide();  
+                    tr.removeClass('shown');  
+                    $(this).text('+');  
+                } else {  
+                    $(this).text('-');  
+                    const practicesByType = {};  
+                    rowData.practices.forEach(practice => {  
+                        if (!practicesByType[practice.tipo]) {  
+                            practicesByType[practice.tipo] = [];  
+                        }  
+                        practicesByType[practice.tipo].push(practice.especialidad);  
+                    });  
 
+                    // Construir HTML para prácticas agrupadas
                     let practicesHtml = '<div class="practices-container">';
                     Object.keys(practicesByType).forEach(tipo => {
                         practicesHtml += `
@@ -290,6 +296,7 @@ $(function() {
                     </div>`;
                     row.child(detalleHtml).show();
                     tr.addClass('shown');
+                    // Geocodificación y mapa
                     const address = [rowData.Domicilio, rowData.Localidad, rowData.Partido, rowData.Provincia].filter(Boolean).join(", ");
                     const coords = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
                         .then(r=>r.json()).then(d=>d[0] ? {lat:+d[0].lat, lon:+d[0].lon} : null).catch(()=>null);
@@ -310,17 +317,30 @@ $(function() {
                 const especialidad = $('#filtro-especialidad').val();
                 const plan = $('#filtro-plan').val();
 
+                // Filtramos los proveedores compactos
                 const filteredData = providersCompact.filter(provider => {
-                    if (seccional && provider.Seccional !== seccional) return false;
+                    // Seccional
+                    if (seccional && provider.Seccional !== seccional) {
+                        return false;
+                    }
+                    // Tipo: si se seleccionó un tipo, debemos verificar que el proveedor tenga al menos una práctica de ese tipo
                     if (tipo) {
                         const hasPracticeType = provider.practices.some(p => p.tipo === tipo);
-                        if (!hasPracticeType) return false;
+                        if (!hasPracticeType) {
+                            return false;
+                        }
                     }
+                    // Especialidad: si se seleccionó una especialidad, debemos verificar que el proveedor tenga al menos una práctica con esa especialidad
                     if (especialidad) {
                         const hasSpecialty = provider.practices.some(p => p.especialidad === especialidad);
-                        if (!hasSpecialty) return false;
+                        if (!hasSpecialty) {
+                            return false;
+                        }
                     }
-                    if (plan && !provider.Plan.includes(plan)) return false;
+                    // Plan: si el proveedor tiene varios planes, verificar si el plan filtrado está incluido
+                    if (plan && !provider.Plan.includes(plan)) {
+                        return false;
+                    }
                     return true;
                 });
 
