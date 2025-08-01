@@ -34,8 +34,12 @@
         .filtros .reset-btn { 
             background: #8c4a4a; 
         }
-        table { font-size: 15px; }
-        th, td { text-align: center; padding: 4px 8px !important; } /* Reducción del padding */
+        table { font-size: 14px; }
+        th, td { 
+            text-align: center; 
+            padding: 4px 8px !important; 
+            height: 28px !important; /* Altura reducida */
+        }
         .details-child { background: #f9f9f9; padding: 18px; }
         .practices-container { 
             display: flex; 
@@ -68,6 +72,9 @@
         /* Colores para los planes */
         tr.universal { background-color: #e6f7e6 !important; } /* Verde pastel */
         tr.superador { background-color: #f0e6ff !important; } /* Violeta pastel */
+        /* Botón + con mismo color que la fila */
+        tr.universal td:first-child { background-color: #e6f7e6 !important; }
+        tr.superador td:first-child { background-color: #f0e6ff !important; }
     </style>
 </head>
 <body>
@@ -179,6 +186,20 @@ $(function() {
             });
             providersCompact = Object.values(providersMap);
 
+            // Ordenar: Universal primero, Superador después
+            providersCompact.sort((a, b) => {
+                const aIsUniversal = a.Plan.includes('Universal');
+                const bIsUniversal = b.Plan.includes('Universal');
+                const aIsSuperador = a.Plan.includes('Superador');
+                const bIsSuperador = b.Plan.includes('Superador');
+
+                if (aIsUniversal && !bIsUniversal) return -1;
+                if (!aIsUniversal && bIsUniversal) return 1;
+                if (aIsSuperador && !bIsSuperador) return 1;
+                if (!aIsSuperador && bIsSuperador) return -1;
+                return 0;
+            });
+
             // Llenar opciones de planes
             uniquePlans.forEach(plan => $('#filtro-plan').append(`<option value="${plan}">${plan}</option>`));
 
@@ -193,6 +214,7 @@ $(function() {
                     {data: 'Plan', defaultContent: '' }
                 ],
                 language: {url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'},
+                pageLength: 25, // Mostrar 25 registros por defecto
                 createdRow: function(row, data) {
                     // Aplicar colores según el plan
                     if (data.Plan.includes('Universal')) {
