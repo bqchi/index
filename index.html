@@ -35,7 +35,7 @@
             background: #8c4a4a; 
         }
         table { font-size: 15px; }
-        th, td { text-align: center; }
+        th, td { text-align: center; padding: 4px 8px !important; } /* Reducción del padding */
         .details-child { background: #f9f9f9; padding: 18px; }
         .practices-container { 
             display: flex; 
@@ -65,6 +65,9 @@
             border-radius:6px; 
             border:1px solid #497e76;
         }
+        /* Colores para los planes */
+        tr.universal { background-color: #e6f7e6 !important; } /* Verde pastel */
+        tr.superador { background-color: #f0e6ff !important; } /* Violeta pastel */
     </style>
 </head>
 <body>
@@ -189,7 +192,15 @@ $(function() {
                     {data: 'Seccional', defaultContent: '' },
                     {data: 'Plan', defaultContent: '' }
                 ],
-                language: {url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'}
+                language: {url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'},
+                createdRow: function(row, data) {
+                    // Aplicar colores según el plan
+                    if (data.Plan.includes('Universal')) {
+                        $(row).addClass('universal');
+                    } else if (data.Plan.includes('Superador')) {
+                        $(row).addClass('superador');
+                    }
+                }
             });
 
             // Filtros
