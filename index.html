@@ -38,7 +38,7 @@
         th, td { 
             text-align: center; 
             padding: 4px 8px !important; 
-            height: 28px !important; /* Altura reducida */
+            height: 28px !important;
         }
         .details-child { background: #f9f9f9; padding: 18px; }
         .practices-container { 
@@ -48,7 +48,7 @@
         }
         .practice-type-container { 
             flex: 1 0 300px; 
-            background: #e5f4ea; 
+            background: #e8f4f8; /* Azul pastel en lugar de verde */
             padding: 10px; 
             border-radius: 6px; 
         }
@@ -70,9 +70,8 @@
             border:1px solid #497e76;
         }
         /* Colores para los planes */
-        tr.universal { background-color: #e6f7e6 !important; } /* Verde pastel */
-        tr.superador { background-color: #f0e6ff !important; } /* Violeta pastel */
-        /* Botón + con mismo color que la fila */
+        tr.universal { background-color: #e6f7e6 !important; }
+        tr.superador { background-color: #f0e6ff !important; }
         tr.universal td:first-child { background-color: #e6f7e6 !important; }
         tr.superador td:first-child { background-color: #f0e6ff !important; }
     </style>
@@ -151,7 +150,7 @@ $(function() {
         complete: function(results) {
             datosFiltrados = results.data.filter(row => row.CUIT && row.CUIT.trim() !== "");
             const providersMap = {};
-            const uniquePlans = new Set(); // Para recopilar planes únicos
+            const uniquePlans = new Set();
 
             datosFiltrados.forEach(row => {
                 const key = `${row.CUIT}-${row.Domicilio}`;
@@ -179,6 +178,7 @@ $(function() {
                     especialidad: row['Especialidad']
                 });
             });
+
             // Convertir el Set de Planes a una cadena para el proveedor
             Object.keys(providersMap).forEach(key => {
                 const planStr = Array.from(providersMap[key].Plan).join(', ');
@@ -186,7 +186,7 @@ $(function() {
             });
             providersCompact = Object.values(providersMap);
 
-            // Ordenar: Universal primero, Superador después
+            // Ordenar: Universal primero, Superador después, y luego alfabéticamente por Nombre
             providersCompact.sort((a, b) => {
                 const aIsUniversal = a.Plan.includes('Universal');
                 const bIsUniversal = b.Plan.includes('Universal');
@@ -197,7 +197,7 @@ $(function() {
                 if (!aIsUniversal && bIsUniversal) return 1;
                 if (aIsSuperador && !bIsSuperador) return 1;
                 if (!aIsSuperador && bIsSuperador) return -1;
-                return 0;
+                return a.Nombre.localeCompare(b.Nombre);
             });
 
             // Llenar opciones de planes
@@ -214,9 +214,8 @@ $(function() {
                     {data: 'Plan', defaultContent: '' }
                 ],
                 language: {url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'},
-                pageLength: 25, // Mostrar 25 registros por defecto
+                pageLength: 25,
                 createdRow: function(row, data) {
-                    // Aplicar colores según el plan
                     if (data.Plan.includes('Universal')) {
                         $(row).addClass('universal');
                     } else if (data.Plan.includes('Superador')) {
@@ -233,7 +232,7 @@ $(function() {
             // Botón reset
             $('#reset-btn').click(function() {
                 $('#filtro-seccional, #filtro-tipo, #filtro-especialidad, #filtro-plan').val('');
-                updateEspecialidades(); // Resetear también las especialidades
+                updateEspecialidades();
                 filterTable();
             });
 
@@ -241,7 +240,7 @@ $(function() {
             $('#tabla-prestadores tbody').on('click', 'button.details-control', async function () {
                 const tr = $(this).closest('tr');
                 const row = tabla.row(tr);
-                const rowData = row.data(); // Es un proveedor compacto
+                const rowData = row.data();
 
                 if (row.child.isShown()) {
                     row.child.hide();
@@ -249,7 +248,6 @@ $(function() {
                     $(this).text('+');
                 } else {
                     $(this).text('-');
-                    // Agrupar prácticas por tipo
                     const practicesByType = {};
                     rowData.practices.forEach(practice => {
                         if (!practicesByType[practice.tipo]) {
@@ -258,7 +256,6 @@ $(function() {
                         practicesByType[practice.tipo].push(practice.especialidad);
                     });
 
-                    // Construir HTML para prácticas agrupadas
                     let practicesHtml = '<div class="practices-container">';
                     Object.keys(practicesByType).forEach(tipo => {
                         practicesHtml += `
@@ -293,7 +290,6 @@ $(function() {
                     </div>`;
                     row.child(detalleHtml).show();
                     tr.addClass('shown');
-                    // Geocodificación y mapa
                     const address = [rowData.Domicilio, rowData.Localidad, rowData.Partido, rowData.Provincia].filter(Boolean).join(", ");
                     const coords = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
                         .then(r=>r.json()).then(d=>d[0] ? {lat:+d[0].lat, lon:+d[0].lon} : null).catch(()=>null);
@@ -314,30 +310,17 @@ $(function() {
                 const especialidad = $('#filtro-especialidad').val();
                 const plan = $('#filtro-plan').val();
 
-                // Filtramos los proveedores compactos
                 const filteredData = providersCompact.filter(provider => {
-                    // Seccional
-                    if (seccional && provider.Seccional !== seccional) {
-                        return false;
-                    }
-                    // Tipo: si se seleccionó un tipo, debemos verificar que el proveedor tenga al menos una práctica de ese tipo
+                    if (seccional && provider.Seccional !== seccional) return false;
                     if (tipo) {
                         const hasPracticeType = provider.practices.some(p => p.tipo === tipo);
-                        if (!hasPracticeType) {
-                            return false;
-                        }
+                        if (!hasPracticeType) return false;
                     }
-                    // Especialidad: si se seleccionó una especialidad, debemos verificar que el proveedor tenga al menos una práctica con esa especialidad
                     if (especialidad) {
                         const hasSpecialty = provider.practices.some(p => p.especialidad === especialidad);
-                        if (!hasSpecialty) {
-                            return false;
-                        }
+                        if (!hasSpecialty) return false;
                     }
-                    // Plan: si el proveedor tiene varios planes, verificar si el plan filtrado está incluido
-                    if (plan && !provider.Plan.includes(plan)) {
-                        return false;
-                    }
+                    if (plan && !provider.Plan.includes(plan)) return false;
                     return true;
                 });
 
