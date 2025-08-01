@@ -13,15 +13,58 @@
     <style>
         body { font-family: Arial, sans-serif; margin:20px; background:#f5f5f5;}
         h1 { color: #497e76; }
-        .filtros { margin-bottom: 20px; display: flex; gap: 20px; flex-wrap: wrap;}
-        select, button { padding: 8px; border-radius:4px; border:1px solid #bbb; }
-        .filtros button { background:#497e76; color:white; border:none; min-width:160px;}
-        table { font-size: 15px;}
-        th, td { text-align: center;}
-        .details-child { background: #f9f9f9; padding: 18px;}
-        .practices-container { column-count:2; column-gap:20px; text-align:left;}
-        .practice-item { break-inside:avoid; margin-bottom:8px; background:#e5f4ea; padding:4px 7px; border-radius:3px;}
-        .map-container { height: 220px; width: 99%; margin-top:10px; border-radius:6px; border:1px solid #497e76;}
+        .filtros { 
+            margin-bottom: 20px; 
+            display: flex; 
+            gap: 20px; 
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        select, button { 
+            padding: 8px; 
+            border-radius:4px; 
+            border:1px solid #bbb; 
+        }
+        .filtros button { 
+            background:#497e76; 
+            color:white; 
+            border:none; 
+            min-width:160px;
+        }
+        .filtros .reset-btn { 
+            background: #8c4a4a; 
+        }
+        table { font-size: 15px; }
+        th, td { text-align: center; }
+        .details-child { background: #f9f9f9; padding: 18px; }
+        .practices-container { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 15px; 
+        }
+        .practice-type-container { 
+            flex: 1 0 300px; 
+            background: #e5f4ea; 
+            padding: 10px; 
+            border-radius: 6px; 
+        }
+        .practice-type-title { 
+            font-weight: bold; 
+            margin-bottom: 8px; 
+            text-align: center;
+            color: #497e76;
+        }
+        .practice-list { 
+            padding-left: 20px; 
+            text-align: left; 
+        }
+        .map-container { 
+            height: 220px; 
+            width: 99%; 
+            margin-top:10px; 
+            border-radius:6px; 
+            border:1px solid #497e76;
+        }
     </style>
 </head>
 <body>
@@ -33,7 +76,10 @@
         <label>Tipo de Prestador:
             <select id="filtro-tipo"><option value="">Todos</option></select>
         </label>
-        <button id="toggle-view-btn" type="button">Ver solo los prestadores</button>
+        <label>Plan:
+            <select id="filtro-plan"><option value="">Todos</option></select>
+        </label>
+        <button id="reset-btn" type="button" class="reset-btn">Borrar Filtros</button>
     </div>
     <table id="tabla-prestadores" class="display" style="width:100%;">
         <thead>
@@ -42,20 +88,12 @@
                 <th>Nombre</th>
                 <th>Nro Prestador</th>
                 <th>Seccional</th>
-                <th>Tipo de Prestador</th>
-                <th>Especialidad</th>
                 <th>Plan</th>
             </tr>
         </thead>
         <tbody></tbody>
     </table>
 <script>
-// Función para formatear el tipo de prestador (ej: "GuardiaPasiva" → "Guardia Pasiva")
-function formatTipoDisplay(tipo) {
-    if (tipo === "Diagnostico") return "Diagnostico y Tratamiento";
-    return tipo.replace(/([a-z])([A-Z])/g, '$1 $2');
-}
-
 const tipoEspecialidad = {
     "GuardiaActiva": ["Cardiologica","Clinica","General","Ginecologica","Obstetrica","Odontologica","Oftalmologica","Otorrinolaringologia","Pediatrica","Por Electrocucion","Por envenenamiento","Por intoxicacion","Por mordedura de animales","Psiquiatrica","Quemados","Quirurgica","Traumatologica"],
     "GuardiaPasiva": ["Cardiologica","Clinica","General","Ginecologica","Obstetrica","Oftalmologica","Otorrinolaringologia","Pediatrica","Psiquiatrica","Quemados","Quirurgica","Traumatologica"],
@@ -67,19 +105,22 @@ const tipoEspecialidad = {
 const seccionales = ["BAHIA BLANCA","BUENOS AIRES ZONA 1","BUENOS AIRES ZONA 2","BUENOS AIRES ZONA 3","CAPITAL","CATAMARCA","CHACO","CHUBUT","CORDOBA","CORRIENTES","ENTRE RIOS","FORMOSA","GBA NOROESTE","GBA NORTE","GBA OESTE","GBA SUR","JUJUY","LA PAMPA","LA PLATA","LA RIOJA","MAR DEL PLATA","MENDOZA","MISIONES","NEUQUEN","RIO NEGRO","ROSARIO","SALTA","SAN JUAN","SAN LUIS","SANTA CRUZ","SANTA FE","SANTIAGO DEL ESTERO","TIERRA DEL FUEGO","TRENQUE LAUQUEN","TUCUMAN"];
 
 $(function() {
+    // Llenar seccionales
     seccionales.forEach(sec => $('#filtro-seccional').append(`<option value="${sec}">${sec}</option>`));
-    Object.keys(tipoEspecialidad).forEach(tipo => $('#filtro-tipo').append(`<option value="${tipo}">${formatTipoDisplay(tipo)}</option>`));
+    // Llenar tipos
+    Object.keys(tipoEspecialidad).forEach(tipo => $('#filtro-tipo').append(`<option value="${tipo}">${tipo}</option>`));
 
-    let providersCompact = [], datosFiltrados = [], tabla, currentViewMode = 'classic';
+    let providersCompact = [], datosFiltrados = [], tabla;
 
     Papa.parse("Data.csv", {
         download: true,
         header: true,
         delimiter: ";",
-        encoding: "UTF-8", // Asegura que la "ñ" se lea correctamente
         complete: function(results) {
             datosFiltrados = results.data.filter(row => row.CUIT && row.CUIT.trim() !== "");
             const providersMap = {};
+            const uniquePlans = new Set(); // Para recopilar planes únicos
+
             datosFiltrados.forEach(row => {
                 const key = `${row.CUIT}-${row.Domicilio}`;
                 if (!providersMap[key]) {
@@ -97,100 +138,97 @@ $(function() {
                         practices: []
                     };
                 }
-                if (row.Plan) providersMap[key].Plan.add(row.Plan);
+                if (row.Plan) {
+                    providersMap[key].Plan.add(row.Plan);
+                    uniquePlans.add(row.Plan);
+                }
                 providersMap[key].practices.push({
                     tipo: row['Tipo de prestador'],
-                    especialidad: row['Especialidad'],
-                    plan: row.Plan
+                    especialidad: row['Especialidad']
                 });
             });
-            // Convertir Set de Planes a cadena
+            // Convertir el Set de Planes a una cadena para el proveedor
             Object.keys(providersMap).forEach(key => {
-                providersMap[key].Plan = Array.from(providersMap[key].Plan).join(', ');
+                const planStr = Array.from(providersMap[key].Plan).join(', ');
+                providersMap[key].Plan = planStr;
             });
             providersCompact = Object.values(providersMap);
 
+            // Llenar opciones de planes
+            uniquePlans.forEach(plan => $('#filtro-plan').append(`<option value="${plan}">${plan}</option>`));
+
+            // Inicializar tabla con proveedores compactos
             tabla = $('#tabla-prestadores').DataTable({
-                data: datosFiltrados,
+                data: providersCompact,
                 columns: [
                     {data: null, defaultContent: '<button class="details-control">+</button>', orderable: false },
                     {data: 'Nombre', defaultContent: '' },
                     {data: 'NroPrestador', defaultContent: '' },
                     {data: 'Seccional', defaultContent: '' },
-                    {data: 'Tipo de prestador', render: function(data) { return formatTipoDisplay(data); }},
-                    {data: 'Especialidad', defaultContent: '' },
-                    {data: 'Plan', defaultContent: ''}
+                    {data: 'Plan', defaultContent: '' }
                 ],
                 language: {url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'}
             });
 
             // Filtros
             $('.filtros select').on('change', function() {
-                tabla.column(3).search($('#filtro-seccional').val()).draw();
-                tabla.column(4).search($('#filtro-tipo').val()).draw();
+                filterTable();
             });
 
-            // Botón vista compacta/completa
-            $('#toggle-view-btn').click(function() {
-                currentViewMode = (currentViewMode === 'classic') ? 'compact' : 'classic';
-                if (currentViewMode === 'compact') {
-                    tabla.clear().rows.add(providersCompact).draw();
-                    tabla.columns([4,5]).visible(false);
-                    $(this).text('Ver vista completa');
-                } else {
-                    tabla.clear().rows.add(datosFiltrados).draw();
-                    tabla.columns([4,5]).visible(true);
-                    $(this).text('Ver solo los prestadores');
-                }
-                tabla.rows().every(function(){ if(this.child.isShown()) this.child.hide(); $(this.node()).removeClass('shown');});
-                tabla.columns.adjust().draw();
+            // Botón reset
+            $('#reset-btn').click(function() {
+                $('#filtro-seccional, #filtro-tipo, #filtro-plan').val('');
+                filterTable();
             });
 
-            // Mostrar/ocultar detalles + mapa
+            // Mostrar/ocultar detalles
             $('#tabla-prestadores tbody').on('click', 'button.details-control', async function () {
-                const tr = $(this).closest('tr'), row = tabla.row(tr), rowData = row.data();
+                const tr = $(this).closest('tr');
+                const row = tabla.row(tr);
+                const rowData = row.data(); // Es un proveedor compacto
+
                 if (row.child.isShown()) {
                     row.child.hide();
                     tr.removeClass('shown');
                     $(this).text('+');
                 } else {
                     $(this).text('-');
-                    const provider = currentViewMode === 'compact' 
-                        ? providersCompact.find(p => p.Nombre === rowData.Nombre && p.NroPrestador === rowData.NroPrestador && p.Domicilio === rowData.Domicilio)
-                        : rowData;
-                    
-                    // Construir la lista de prácticas con el plan
-                    let practicesToShow;
-                    if (currentViewMode === 'compact') {
-                        practicesToShow = provider.practices;
-                    } else {
-                        practicesToShow = [{
-                            tipo: rowData['Tipo de prestador'],
-                            especialidad: rowData['Especialidad'],
-                            plan: rowData.Plan
-                        }];
-                    }
-                    let practicesHtml = '';
-                    if (practicesToShow.length) {
-                        practicesHtml = practicesToShow.map(p => 
-                            `<div class="practice-item">${formatTipoDisplay(p.tipo)} - ${p.especialidad} (${p.plan})</div>`
-                        ).join('');
-                        practicesHtml = `<div class="practices-container">${practicesHtml}</div>`;
-                    } else {
-                        practicesHtml = 'Sin prácticas';
-                    }
+                    // Agrupar prácticas por tipo
+                    const practicesByType = {};
+                    rowData.practices.forEach(practice => {
+                        if (!practicesByType[practice.tipo]) {
+                            practicesByType[practice.tipo] = [];
+                        }
+                        practicesByType[practice.tipo].push(practice.especialidad);
+                    });
 
-                    const mapId = `mapa-${(provider.CUIT||rowData.CUIT).replace(/\W/g,'')}-${(provider.Domicilio||rowData.Domicilio).replace(/\W/g,'')}`;
+                    // Construir HTML para prácticas agrupadas
+                    let practicesHtml = '<div class="practices-container">';
+                    Object.keys(practicesByType).forEach(tipo => {
+                        practicesHtml += `
+                        <div class="practice-type-container">
+                            <div class="practice-type-title">${tipo}</div>
+                            <ul class="practice-list">`;
+                        practicesByType[tipo].forEach(especialidad => {
+                            practicesHtml += `<li>${especialidad}</li>`;
+                        });
+                        practicesHtml += `
+                            </ul>
+                        </div>`;
+                    });
+                    practicesHtml += '</div>';
+
+                    const mapId = `mapa-${(rowData.CUIT).replace(/\W/g,'')}-${(rowData.Domicilio).replace(/\W/g,'')}`;
                     let detalleHtml = `
                     <div class="details-child">
                         <table style="width:100%;">
-                            <tr><th>Provincia:</th><td>${provider.Provincia||'N/A'}</td></tr>
-                            <tr><th>Partido:</th><td>${provider.Partido||'N/A'}</td></tr>
-                            <tr><th>Localidad:</th><td>${provider.Localidad||'N/A'}</td></tr>
-                            <tr><th>Domicilio:</th><td>${provider.Domicilio||'N/A'}</td></tr>
-                            <tr><th>Telefono:</th><td>${provider.Telefono||'N/A'}</td></tr>
-                            <tr><th>Practicas:</th><td>${practicesHtml}</td></tr>
-                            <tr><th>Ubicacion:</th>
+                            <tr><th>Provincia:</th><td>${rowData.Provincia||'N/A'}</td></tr>
+                            <tr><th>Partido:</th><td>${rowData.Partido||'N/A'}</td></tr>
+                            <tr><th>Localidad:</th><td>${rowData.Localidad||'N/A'}</td></tr>
+                            <tr><th>Domicilio:</th><td>${rowData.Domicilio||'N/A'}</td></tr>
+                            <tr><th>Telefono:</th><td>${rowData.Telefono||'N/A'}</td></tr>
+                            <tr><th>Prácticas:</th><td>${practicesHtml}</td></tr>
+                            <tr><th>Ubicación:</th>
                                 <td>
                                     <div id="${mapId}" class="map-container"></div>
                                 </td>
@@ -200,7 +238,7 @@ $(function() {
                     row.child(detalleHtml).show();
                     tr.addClass('shown');
                     // Geocodificación y mapa
-                    const address = [provider.Domicilio||rowData.Domicilio, provider.Localidad||rowData.Localidad, provider.Partido||rowData.Partido, provider.Provincia||rowData.Provincia].filter(Boolean).join(", ");
+                    const address = [rowData.Domicilio, rowData.Localidad, rowData.Partido, rowData.Provincia].filter(Boolean).join(", ");
                     const coords = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
                         .then(r=>r.json()).then(d=>d[0] ? {lat:+d[0].lat, lon:+d[0].lon} : null).catch(()=>null);
                     if (coords) {
@@ -208,10 +246,39 @@ $(function() {
                         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: 'OpenStreetMap'}).addTo(map);
                         L.marker([coords.lat, coords.lon]).addTo(map).bindPopup(address).openPopup();
                     } else {
-                        document.getElementById(mapId).innerHTML = "<div style='color:#b71c1c;padding:30px;text-align:center;'>No se pudo localizar la direccion.</div>";
+                        document.getElementById(mapId).innerHTML = "<div style='color:#b71c1c;padding:30px;text-align:center;'>No se pudo localizar la dirección.</div>";
                     }
                 }
             });
+
+            // Función para filtrar la tabla según los filtros
+            function filterTable() {
+                const seccional = $('#filtro-seccional').val();
+                const tipo = $('#filtro-tipo').val();
+                const plan = $('#filtro-plan').val();
+
+                // Filtramos los proveedores compactos
+                const filteredData = providersCompact.filter(provider => {
+                    // Seccional
+                    if (seccional && provider.Seccional !== seccional) {
+                        return false;
+                    }
+                    // Plan: si el proveedor tiene varios planes, verificar si el plan filtrado está incluido
+                    if (plan && !provider.Plan.includes(plan)) {
+                        return false;
+                    }
+                    // Tipo: si se seleccionó un tipo, debemos verificar que el proveedor tenga al menos una práctica de ese tipo
+                    if (tipo) {
+                        const hasPracticeType = provider.practices.some(p => p.tipo === tipo);
+                        if (!hasPracticeType) {
+                            return false;
+                        }
+                    }
+                    return true;
+                });
+
+                tabla.clear().rows.add(filteredData).draw();
+            }
         }
     });
 });
